@@ -7,12 +7,12 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(authMiddleware.verifyToken(['/api/auth/login']))
+app.use(authMiddleware.verifyToken(['/api/auth/login','/api/auth/verify-token']))
 
 mongoose.connect('mongodb://localhost:27017/erpdb').then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err)); 
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes); 
 
 const PORT = 3000;
 app.listen(PORT,'0.0.0.0', () => {

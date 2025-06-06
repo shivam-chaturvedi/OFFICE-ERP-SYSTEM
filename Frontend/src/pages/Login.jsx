@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import config from "../config";
-import { useEffect } from "react";
 
 const Login = ({setUser}) => {
   const [formData, setFormData] = useState({
@@ -15,13 +14,6 @@ const Login = ({setUser}) => {
   });
 
   const navigate = useNavigate();
-
-  useEffect(()=>{
-    if(localStorage.getItem('token')){
-      navigate('/')
-    }
-  },[]);
-
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
