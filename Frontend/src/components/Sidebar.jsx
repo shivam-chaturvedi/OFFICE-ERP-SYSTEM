@@ -10,11 +10,13 @@ import {
   CalendarCheck,
   DollarSign,
   Calendar,
+  LifeBuoy,
 } from "lucide-react";
 import useIsMobile from "../hooks/useIsMobile";
 import { useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
-const Sidebar = ({ setUser }) => {
+const Sidebar = ({ user, setUser }) => {
   const [expanded, setExpanded] = useState(true);
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ const Sidebar = ({ setUser }) => {
   const toggleSidebar = () => {
     setExpanded((prev) => !prev);
   };
+
   const logout = () => {
     const confirmed = window.confirm("Are you sure you want to logout?");
     if (confirmed) {
@@ -31,9 +34,32 @@ const Sidebar = ({ setUser }) => {
     }
   };
 
+  const adminNavItems = [
+    { icon: <Home size={20} />, label: "Home", to: "/" },
+    { icon: <Settings size={20} />, label: "Profile", to: "/admin-profile" },
+    { icon: <Users size={20} />, label: "Manage Users", to: "/manage-users" },
+    { icon: <FileText size={20} />, label: "Reports", to: "/reports" },
+    { icon: <Bell size={20} />, label: "Notifications", to: "/notifications" },
+  ];
+
+  const adminSubNav = [
+    { icon: <CalendarCheck size={20} />, label: "Manage Leaves", to: "/manage-leaves" },
+    { icon: <DollarSign size={20} />, label: "Salary Details", to: "/salary-details" },
+  ];
+
+  const employeeNavItems = [
+    { icon: <Home size={20} />, label: "Home", to: "/" },
+    { icon: <Settings size={20} />, label: "My Profile", to: "/profile" },
+    { icon: <CalendarCheck size={20} />, label: "Leave Requests", to: "/leave-requests" },
+    { icon: <DollarSign size={20} />, label: "Salary Slips", to: "/salary-slips" },
+    { icon: <Calendar size={20} />, label: "My Attendance", to: "/my-attendance" },
+    { icon: <FileText size={20} />, label: "Tasks / Projects", to: "/tasks" },
+    { icon: <Bell size={20} />, label: "Announcements", to: "/announcements" },
+  ];
+
   return (
     <div
-      className={`h-screen bg-white border-r border-gray-200 flex flex-col justify-between ${
+      className={`${isMobile?'h-[82%]':'h-screen'}  bg-white border-r border-gray-200 flex flex-col justify-between ${
         expanded ? `w-64 ${isMobile ? "absolute z-30" : ""}` : "w-16"
       } transition-all duration-300`}
     >
@@ -49,48 +75,24 @@ const Sidebar = ({ setUser }) => {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 px-2 sm:px-4 space-y-2">
-        <NavItem icon={<Home size={20} />} label="Home" expanded={expanded} />
-        <NavItem
-          icon={<Users size={20} />}
-          label="Manage Users"
-          expanded={expanded}
-        />
-        <NavItem
-          icon={<FileText size={20} />}
-          label="Reports"
-          expanded={expanded}
-        />
-        <NavItem
-          icon={<Settings size={20} />}
-          label="Settings"
-          expanded={expanded}
-        />
-        <NavItem
-          icon={<Bell size={20} />}
-          label="Notifications"
-          expanded={expanded}
-        />
+      <div className="flex-1 px-2 sm:px-4 space-y-2 overflow-y-auto">
+        {user?.role === "admin" &&
+          adminNavItems.map((item, idx) => (
+            <NavItem key={idx} {...item} expanded={expanded} />
+          ))}
 
-        <hr className="border-gray-300 my-2" />
+        {user?.role === "admin" && (
+          <div className="bg-gray-100 rounded-md p-2 space-y-2">
+            {adminSubNav.map((item, idx) => (
+              <NavItem key={idx} {...item} expanded={expanded} />
+            ))}
+          </div>
+        )}
 
-        <div className="bg-gray-100 rounded-md p-2 space-y-2">
-          <NavItem
-            icon={<CalendarCheck size={20} />}
-            label="Manage Leaves"
-            expanded={expanded}
-          />
-          <NavItem
-            icon={<DollarSign size={20} />}
-            label="Salary Details"
-            expanded={expanded}
-          />
-          <NavItem
-            icon={<Calendar size={20} />}
-            label="Calendar"
-            expanded={expanded}
-          />
-        </div>
+        {user?.role === "employee" &&
+          employeeNavItems.map((item, idx) => (
+            <NavItem key={idx} {...item} expanded={expanded} />
+          ))}
       </div>
 
       {/* Bottom Section */}
@@ -99,6 +101,7 @@ const Sidebar = ({ setUser }) => {
           <NavItem
             icon={<ArrowRightLeft size={20} />}
             label="Switch"
+            to="#"
             expanded={expanded}
           />
         </button>
@@ -106,6 +109,7 @@ const Sidebar = ({ setUser }) => {
           <NavItem
             icon={<LogOut size={20} />}
             label="Logout"
+            to="#"
             expanded={expanded}
           />
         </button>
@@ -114,11 +118,18 @@ const Sidebar = ({ setUser }) => {
   );
 };
 
-const NavItem = ({ icon, label, expanded }) => (
-  <div className="flex items-center gap-2 p-2 rounded-md hover:bg-blue-100 transition-colors duration-200 group">
-    <div className="text-gray-700">{icon}</div>
-    {expanded && <span className="text-sm text-gray-700">{label}</span>}
-  </div>
+const NavItem = ({ icon, label, to, expanded }) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      `flex items-center gap-2 p-2 rounded-md hover:bg-blue-100 transition-colors duration-200 group ${
+        isActive ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-700"
+      }`
+    }
+  >
+    <div>{icon}</div>
+    {expanded && <span className="text-sm">{label}</span>}
+  </NavLink>
 );
 
 export default Sidebar;

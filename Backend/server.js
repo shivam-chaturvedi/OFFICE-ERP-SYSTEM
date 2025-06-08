@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth.routes');
+const userRoutes=require('./routes/user.routes')
 const authMiddleware = require('./middlewares/auth.middleware');
 const cors = require('cors');
 
@@ -13,6 +14,7 @@ mongoose.connect('mongodb://localhost:27017/erpdb').then(() => console.log('Mong
   .catch(err => console.log(err)); 
 
 app.use('/api/auth', authRoutes); 
+app.use('/api/users',userRoutes)
 
 const PORT = 3000;
 app.listen(PORT,'0.0.0.0', () => {

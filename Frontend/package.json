@@ -14,13 +14,15 @@
     "axios": "^1.9.0",
     "bootstrap": "^5.3.6",
     "Frontend": "file:",
+    "lucide-react": "^0.513.0",
     "office-erp": "file:",
     "office-erp-fe": "file:",
     "react": "^19.1.0",
+    "react-datepicker": "^8.4.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
-    "tailwindcss": "^4.1.8",
-    "lucide-react": "^0.513.0"
+    "recharts": "^2.15.3",
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

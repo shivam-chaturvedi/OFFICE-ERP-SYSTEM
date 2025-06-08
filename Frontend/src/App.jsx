@@ -1,13 +1,34 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { useState, useEffect } from "react";
+
+import Sidebar from "./components/Sidebar";
+import Loader from "./components/Loader";
+import config from "./config";
+
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import { useState, useEffect } from "react";
-import config from "./config";
-import Loader from "./components/Loader";
+import AdminProfile from "./pages/admin/AdminProfile";
+import ManageUsers from "./pages/admin/ManageUsers";
+import Reports from "./pages/admin/Reports";
+import Notifications from "./pages/admin/Notifications";
+import ManageLeaves from "./pages/admin/ManageLeaves";
+import SalaryDetails from "./pages/admin/SalaryDetails";
+
+import Profile from "./pages/employee/Profile";
+import LeaveRequests from "./pages/employee/LeaveRequests";
+import SalarySlip from "./pages/employee/SalarySlip";
+import Attendance from "./pages/employee/Attendance";
+import Tasks from "./pages/employee/Tasks";
+import Announcements from "./pages/employee/Announcements";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);  
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,24 +54,147 @@ function App() {
       } catch (err) {
         console.error("Token validation failed:", err);
       } finally {
-        setLoading(false); 
+        setLoading(false);
       }
     };
 
     verify();
   }, []);
 
-  if (loading) return <Loader/>;
+  if (loading) return <Loader />;
+
+  const ProtectedRoute = ({ children, role }) => {
+    if (!user) return <Navigate to="/login" />;
+    if (role && user.role !== role) return <Navigate to="/" />;
+    return (
+      <div className="flex">
+        <Sidebar user={user} setUser={setUser} />
+        <div className="flex-1">{children}</div>
+      </div>
+    );
+  };
+
   return (
     <Router>
       <Routes>
         <Route
           path="/"
-          element={user === null ? <Navigate to="/login" /> : <Home user={user} setUser={setUser}/>}
+          element={
+            user === null ? (
+              <Navigate to="/login" />
+            ) : (
+              <ProtectedRoute>
+                <Home user={user} setUser={setUser} />
+              </ProtectedRoute>
+            )
+          }
         />
+
         <Route
           path="/login"
-          element={user !== null ? <Navigate to="/" /> : <Login setUser={setUser} />}
+          element={
+            user !== null ? <Navigate to="/" /> : <Login setUser={setUser} />
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin-profile"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminProfile user={user} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manage-users"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageUsers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute role="admin">
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute role="admin">
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manage-leaves"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageLeaves />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/salary-details"
+          element={
+            <ProtectedRoute role="admin">
+              <SalaryDetails />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Employee Routes */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute role="employee">
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leave-requests"
+          element={
+            <ProtectedRoute role="employee">
+              <LeaveRequests />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/salary-slips"
+          element={
+            <ProtectedRoute role="employee">
+              <SalarySlip user={user}/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-attendance"
+          element={
+            <ProtectedRoute role="employee">
+              <Attendance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute role="employee">
+              <Tasks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/announcements"
+          element={
+            <ProtectedRoute role="employee">
+              <Announcements />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </Router>
