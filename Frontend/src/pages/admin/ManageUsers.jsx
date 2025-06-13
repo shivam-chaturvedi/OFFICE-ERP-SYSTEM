@@ -5,6 +5,8 @@ import config from "../../config";
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [alert, setAlert] = useState({});
 
   const fetchUsers = async () => {
     try {
@@ -15,9 +17,13 @@ const ManageUsers = () => {
         },
       });
       const data = await res.json();
-      setUsers([...data.users, ...data.employees]);
+      setUsers(data.users);
     } catch (err) {
       console.error("Failed to load users:", err.message);
+      setAlert({
+        type: "error",
+        message: err.message,
+      });
     }
   };
 
@@ -25,11 +31,76 @@ const ManageUsers = () => {
     fetchUsers();
   }, []);
 
+  const renderAlert = () => {
+    if (!alert.message) return null;
+
+    const baseClass = "p-4 mb-4 animate-bounce text-sm rounded-lg font-medium text-center";
+    const successClass =
+      "text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400";
+    const errorClass =
+      "text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400";
+
+    return (
+      <div
+        className={`${baseClass} ${
+          alert.type === "success" ? successClass : errorClass
+        }`}
+        role="alert"
+      >
+        {alert.message}
+        {setTimeout(()=>{
+          setAlert({})
+        },2000)}
+      </div>
+    );
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${config.BACKEND_URL}/api/users/edit`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: JSON.stringify(editUser),
+      });
+      if (res.ok) {
+        fetchUsers();
+        setEditUser(null);
+        setAlert({
+          type:"success",
+          message:"User Updated Successfully !"
+        })
+      } else {
+        console.error("Edit failed");
+        setAlert({
+          type: "error",
+          message: "Edit Failed",
+        });
+      }
+    } catch (err) {
+      console.error("Error editing user:", err.message);
+      setAlert({
+        type: "error",
+        message: "Edit Failed",
+      });
+    }
+  };
+
+  const handleEditChange = (e) => {
+    setEditUser({ ...editUser, [e.target.name]: e.target.value });
+  };
+
   return (
     <div className="p-6">
+      {renderAlert()}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
-        <p className="text-gray-600">View, edit, or remove users from the system.</p>
+        <p className="text-gray-600">
+          View, edit, or remove users from the system.
+        </p>
       </div>
 
       <div className="mb-4">
@@ -48,29 +119,121 @@ const ManageUsers = () => {
         />
       )}
 
+      {editUser && (
+        <div className="fixed inset-0 backdrop-blur-xs z-50 flex items-center justify-center">
+          <form
+            onSubmit={handleEditSubmit}
+            className="bg-white p-6 rounded-lg w-full max-w-lg shadow-md space-y-4"
+          >
+            <h2 className="text-xl font-semibold">Edit User</h2>
+            <input
+              name="name"
+              value={editUser.name}
+              onChange={handleEditChange}
+              placeholder="Name"
+              className="input"
+              required
+            />
+            <input
+              name="email"
+              value={editUser.email}
+              onChange={handleEditChange}
+              placeholder="Email"
+              className="input"
+              required
+            />
+            <input
+              name="phone"
+              value={editUser.phone}
+              onChange={handleEditChange}
+              placeholder="Phone"
+              className="input"
+              required
+            />
+            <input
+              name="position"
+              value={editUser.position}
+              onChange={handleEditChange}
+              placeholder="Position"
+              className="input"
+              required
+            />
+            <input
+              name="password"
+              type="password"
+              onChange={handleEditChange}
+              placeholder="New Password"
+              className="input"
+            />
+            <select
+              name="role"
+              value={editUser.role}
+              onChange={handleEditChange}
+              className="input"
+            >
+              <option value="employee">Employee</option>
+              <option value="hr">HR</option>
+              <option value="admin">Admin</option>
+              <option value="project_manager">Project Manager</option>
+            </select>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setEditUser(null)}
+                className="bg-gray-300 px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white shadow-md rounded-xl overflow-hidden">
           <thead className="bg-gray-100 text-gray-700">
             <tr>
-              <th className="text-left px-6 py-3">Name</th>
-              <th className="text-left px-6 py-3">Email</th>
-              <th className="text-left px-6 py-3">Role</th>
-              <th className="text-left px-6 py-3">Actions</th>
+              <th className="text-left px-2 py-3">Created At</th>
+              <th className="text-left px-2 py-3">E-Id</th>
+              <th className="text-left px-2 py-3">Name</th>
+              <th className="text-left px-2 py-3">Role</th>
+              <th className="text-left px-2 py-3">Position</th>
+              <th className="text-left px-2 py-3">Phone</th>
+              <th className="text-left px-2 py-3">Email</th>
+              <th className="text-left px-2 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map((user) => (
               <tr key={user._id} className="border-t hover:bg-gray-50">
-                <td className="px-6 py-3">{user.name}</td>
-                <td className="px-6 py-3">{user.email}</td>
-                <td className="px-6 py-3">{user.role}</td>
-                <td className="px-6 py-3 space-x-2">
-                  <button className="text-sm bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700">
+                <td className="px-2 py-3">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </td>
+                <td className="px-2 py-3">{user._id}</td>
+                <td className="px-2 py-3">{user.name}</td>
+                <td className="px-2 py-3 text-purple-600">
+                  {new String(user.role).toUpperCase()}
+                </td>
+                <td className="px-2 py-3">{user.position}</td>
+                <td className="px-2 py-3">{user.phone}</td>
+                <td className="px-2 py-3">{user.email}</td>
+                <td className="px-2 py-3 space-x-2">
+                  <button
+                    onClick={() => setEditUser(user)}
+                    className="text-sm bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700"
+                  >
                     Edit
                   </button>
-                  <button className="text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
+                  {/* <button className="text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
                     Delete
-                  </button>
+                  </button> */}
                 </td>
               </tr>
             ))}

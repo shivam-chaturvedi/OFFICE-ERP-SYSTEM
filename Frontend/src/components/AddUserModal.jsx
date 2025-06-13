@@ -9,10 +9,6 @@ const AddUserModal = ({ onClose, onSuccess }) => {
     phone: "",
     email: "",
     password: "",
-    designation: "",
-    department: "",
-    date_of_joining: "",
-    manager_id: "",
   });
 
   const handleChange = (e) => {
@@ -36,12 +32,13 @@ const AddUserModal = ({ onClose, onSuccess }) => {
       });
 
       const data = await res.json();
+      // console.log(data)
       if (!res.ok) throw new Error(data.message);
 
-      alert("User added successfully!");
+      // alert("User added successfully!");
       onSuccess();
       onClose();
-    } catch (err) {
+    } catch (err) { 
       alert("Failed to add user: " + err.message);
     }
   };
@@ -58,10 +55,6 @@ const AddUserModal = ({ onClose, onSuccess }) => {
         <input name="email" placeholder="Email" required onChange={handleChange} className="input" />
         <input name="phone" placeholder="Phone" required onChange={handleChange} className="input" />
         <input name="position" placeholder="Position" required onChange={handleChange} className="input" />
-        <input name="designation" placeholder="Designation" onChange={handleChange} className="input" />
-        <input name="department" placeholder="Department ID" onChange={handleChange} className="input" />
-        <input name="manager_id" placeholder="Manager ID" onChange={handleChange} className="input" />
-        <input name="date_of_joining" type="date" onChange={handleChange} className="input" />
         <input name="password" placeholder="Password" type="password" required onChange={handleChange} className="input" />
 
         <select name="role" onChange={handleChange} className="input">
