@@ -1,0 +1,27 @@
+Test Case ID,Test Case Description,Steps to Execute,Test Data,Expected Result,Type
+TC_LP_01,Verify login with valid credentials,"1. Open login page
+2. Enter valid username & password
+3. Click Login","Username: admin
+Password: admin123",Redirected to Dashboard/Home Page,Functional
+TC_LP_02,Verify login with invalid password,"1. Enter valid username
+2. Enter wrong password
+3. Click Login","Username: admin
+Password: wrong123",Show error: 'Invalid credentials',Negative
+TC_LP_03,Verify login with blank fields,"1. Leave username and password blank
+2. Click Login",-,Show error: 'Fields are required',Negative
+TC_LP_04,Verify login with blank username,"1. Leave username blank
+2. Enter password
+3. Click Login",Password: admin123,Show error: 'Username is required',Negative
+TC_LP_05,Verify login with blank password,"1. Enter username
+2. Leave password blank
+3. Click Login",Username: admin,Show error: 'Password is required',Negative
+TC_LP_06,Verify password is masked,1. Type in the password field,Password: admin123,Password is hidden with bullets/dots,UI
+TC_LP_07,Check 'Forgot Password' link,1. Click on ‘Forgot Password?’ link,-,Redirect to Forgot Password page,Functional
+TC_LP_08,Verify 'Remember Me' checkbox (if exists),"1. Check 'Remember Me'
+2. Login
+3. Refresh or reopen browser",-,User remains logged in or username remembered,Functional
+TC_LP_09,Verify login button disabled when fields empty,"1. Leave fields empty
+2. Check if Login button is active",-,Login button should be disabled,UI
+TC_LP_10,Verify input field limits,1. Enter 100+ characters in username/password,Random text,System should restrict input or show error,Boundary
+TC_LP_11,Check SQL Injection protection,1. Enter `admin' OR 1=1 --` in username field,Username: admin' OR 1=1 --,Should not log in; show error,Security
+TC_LP_12,Check login redirect URL,1. Login with valid credentials,-,Redirects to correct role-based dashboard,Functional

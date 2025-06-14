@@ -9,6 +9,7 @@ const AddUserModal = ({ onClose, onSuccess }) => {
     phone: "",
     email: "",
     password: "",
+    salary:0.00,
   });
 
   const handleChange = (e) => {
@@ -55,6 +56,8 @@ const AddUserModal = ({ onClose, onSuccess }) => {
         <input name="email" placeholder="Email" required onChange={handleChange} className="input" />
         <input name="phone" placeholder="Phone" required onChange={handleChange} className="input" />
         <input name="position" placeholder="Position" required onChange={handleChange} className="input" />
+                <input name="salary" placeholder="Salary" required onChange={handleChange} className="input" />
+
         <input name="password" placeholder="Password" type="password" required onChange={handleChange} className="input" />
 
         <select name="role" onChange={handleChange} className="input">

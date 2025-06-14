@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import AddUserModal from "../../components/AddUserModal";
 import config from "../../config";
+import Loader from "../../components/Loader";
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [alert, setAlert] = useState({});
+  const [loader, setLoader] = useState(false);
 
   const fetchUsers = async () => {
+    setLoader(true);
     try {
       const res = await fetch(`${config.BACKEND_URL}/api/users`, {
         method: "GET",
@@ -24,6 +27,8 @@ const ManageUsers = () => {
         type: "error",
         message: err.message,
       });
+    } finally {
+      setLoader(false);
     }
   };
 
@@ -34,7 +39,8 @@ const ManageUsers = () => {
   const renderAlert = () => {
     if (!alert.message) return null;
 
-    const baseClass = "p-4 mb-4 animate-bounce text-sm rounded-lg font-medium text-center";
+    const baseClass =
+      "p-4 mb-4 animate-bounce text-sm rounded-lg font-medium text-center";
     const successClass =
       "text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400";
     const errorClass =
@@ -48,15 +54,45 @@ const ManageUsers = () => {
         role="alert"
       >
         {alert.message}
-        {setTimeout(()=>{
-          setAlert({})
-        },2000)}
+        {setTimeout(() => {
+          setAlert({});
+        }, 2000)}
       </div>
     );
   };
 
+  const deleteUser = async (id) => {
+    const confirmed = confirm(
+      "Are you Sure You want to remove user with id " + id + " ?"
+    );
+    if (!confirmed) {
+      return;
+    }
+    setLoader(true);
+    try {
+      const res = await fetch(`${config.BACKEND_URL}/api/users/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAlert({ type: "success", message: data.message });
+        fetchUsers();
+      } else {
+        setAlert({ type: "error", message: data.message });
+      }
+    } catch (err) {
+      setAlert({ type: "error", message: err.message });
+    } finally {
+      setLoader(false);
+    }
+  };
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    setLoader(true);
     try {
       const res = await fetch(`${config.BACKEND_URL}/api/users/edit`, {
         method: "PUT",
@@ -70,9 +106,9 @@ const ManageUsers = () => {
         fetchUsers();
         setEditUser(null);
         setAlert({
-          type:"success",
-          message:"User Updated Successfully !"
-        })
+          type: "success",
+          message: "User Updated Successfully !",
+        });
       } else {
         console.error("Edit failed");
         setAlert({
@@ -86,6 +122,8 @@ const ManageUsers = () => {
         type: "error",
         message: "Edit Failed",
       });
+    } finally {
+      setLoader(false);
     }
   };
 
@@ -96,6 +134,7 @@ const ManageUsers = () => {
   return (
     <div className="p-6">
       {renderAlert()}
+      {loader && <Loader />}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
         <p className="text-gray-600">
@@ -158,6 +197,16 @@ const ManageUsers = () => {
               className="input"
               required
             />
+
+            <input
+              name="salary"
+              value={editUser.salary}
+              onChange={handleEditChange}
+              placeholder="Salary"
+              className="input"
+              required
+            />
+
             <input
               name="password"
               type="password"
@@ -165,6 +214,7 @@ const ManageUsers = () => {
               placeholder="New Password"
               className="input"
             />
+
             <select
               name="role"
               value={editUser.role}
@@ -204,9 +254,12 @@ const ManageUsers = () => {
               <th className="text-left px-2 py-3">E-Id</th>
               <th className="text-left px-2 py-3">Name</th>
               <th className="text-left px-2 py-3">Role</th>
+
               <th className="text-left px-2 py-3">Position</th>
               <th className="text-left px-2 py-3">Phone</th>
               <th className="text-left px-2 py-3">Email</th>
+
+              <th className="text-left px-2 py-3">Salary</th>
               <th className="text-left px-2 py-3">Actions</th>
             </tr>
           </thead>
@@ -217,13 +270,19 @@ const ManageUsers = () => {
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-2 py-3">{user._id}</td>
-                <td className="px-2 py-3">{user.name}</td>
-                <td className="px-2 py-3 text-purple-600">
-                  {new String(user.role).toUpperCase()}
+                <td className="px-2 py-3 capitalize">{user.name}</td>
+                <td className="px-2 py-3 text-purple-600 uppercase">
+                  {user.role}
                 </td>
-                <td className="px-2 py-3">{user.position}</td>
+                <td className="px-2 py-3 capitalize">{user.position}</td>
                 <td className="px-2 py-3">{user.phone}</td>
-                <td className="px-2 py-3">{user.email}</td>
+                <td className="px-2 py-3 text-blue-800">
+                  <a href={`mailto:${user.email}`} className="hover:underline">
+                  {user.email}
+                  </a>
+                  </td>
+
+                <td className="px-2 py-3">{user.salary}</td>
                 <td className="px-2 py-3 space-x-2">
                   <button
                     onClick={() => setEditUser(user)}
@@ -231,9 +290,12 @@ const ManageUsers = () => {
                   >
                     Edit
                   </button>
-                  {/* <button className="text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600">
+                  <button
+                    onClick={() => deleteUser(user._id)}
+                    className="text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                  >
                     Delete
-                  </button> */}
+                  </button>
                 </td>
               </tr>
             ))}

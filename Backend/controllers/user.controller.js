@@ -10,6 +10,7 @@ const addUser = async (req, res) => {
       phone,
       email,
       password,
+      salary
     } = req.body;
     const existing = await User.findOne({ email });
     if (existing) {
@@ -25,6 +26,7 @@ const addUser = async (req, res) => {
       phone,
       email,
       password: hashedPassword,
+      salary,
     });
 
     const savedUser = await newUser.save();
@@ -54,7 +56,7 @@ const getAllUsers = async (req, res) => {
 
 const editUser = async (req, res) => {
   try {
-    const { _id, name, role, position, phone, email, password } = req.body;
+    const { _id, name, role, position, phone, email, password,salary } = req.body;
 
     const user = await User.findById(_id);
     if (!user) {
@@ -73,6 +75,7 @@ const editUser = async (req, res) => {
     user.position = position || user.position;
     user.phone = phone || user.phone;
     user.email = email || user.email;
+    user.salary=salary || user.salary
 
     if (password && password.trim() !== "") {
       user.password = await bcrypt.hash(password, 10);
@@ -91,8 +94,22 @@ const editUser = async (req, res) => {
   }
 };
 
+const removeUser=async (req,res)=>{
+  try{
+    const id=req.params.id;
+    if(!id){
+      res.status(400).json({message:"/{id} is required !"})
+    }
+    await User.deleteOne({_id:id})
+    res.status(200).json({message:"User Removed !"})
+  }catch(err){
+    res.status(400).json({message:err.message})
+  }
+}
+
 module.exports = {
   addUser,
   getAllUsers,
   editUser,
+  removeUser,
 };
