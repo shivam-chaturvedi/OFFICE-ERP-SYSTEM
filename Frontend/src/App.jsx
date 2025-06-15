@@ -31,6 +31,9 @@ import HRLeaveApprovals from "./pages/hr/HRLeaveApprovals";
 import HRReports from "./pages/hr/HRReports";
 import HRNotices from "./pages/hr/HRNotices";
 import Recruitments from "./pages/hr/Recruitments";
+import ManageEmployees from "./pages/admin/ManageEmployees";
+import ManageTrainees from "./pages/admin/ManageTrainees";
+import ManageClients from "./pages/admin/ManageClients";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -152,6 +155,46 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+         <Route
+          path="/manage-employees"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageEmployees />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="/manage-trainees"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageTrainees />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute role="admin">
+              <Tasks />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="/clients"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageClients />
+            </ProtectedRoute>
+          }
+        />
+
+        
+
+
 
         {/* Employee Routes */}
         <Route

@@ -11,6 +11,10 @@ import {
   DollarSign,
   Calendar,
   LifeBuoy,
+  UserCog,
+  UserPlus,
+  ListTodo,
+  Briefcase,
 } from "lucide-react";
 import useIsMobile from "../hooks/useIsMobile";
 import { useNavigate } from "react-router-dom";
@@ -37,9 +41,18 @@ const Sidebar = ({ user, setUser }) => {
   const adminNavItems = [
     { icon: <Home size={20} />, label: "Home", to: "/" },
     { icon: <Settings size={20} />, label: "Profile", to: "/admin-profile" },
+    { icon: <ListTodo size={20} />, label: "Tasks", to: "/tasks" },
     { icon: <Users size={20} />, label: "Manage Users", to: "/manage-users" },
-    { icon: <FileText size={20} />, label: "Reports", to: "/reports" },
-    { icon: <Bell size={20} />, label: "Notifications", to: "/notifications" },
+    {
+      icon: <UserCog size={20} />,
+      label: "Manage Employees",
+      to: "/manage-employees",
+    },
+    {
+      icon: <UserPlus size={20} />,
+      label: "Manage Trainees",
+      to: "/manage-trainees",
+    },
   ];
 
   const adminSubNav = [
@@ -53,6 +66,10 @@ const Sidebar = ({ user, setUser }) => {
       label: "Salary Details",
       to: "/salary-details",
     },
+
+    { icon: <Briefcase size={20} />, label: "Clients", to: "/clients" },
+    { icon: <FileText size={20} />, label: "Reports", to: "/reports" },
+    { icon: <Bell size={20} />, label: "Notifications", to: "/notifications" },
   ];
 
   const employeeNavItems = [
@@ -123,7 +140,7 @@ const Sidebar = ({ user, setUser }) => {
           adminNavItems.map((item, idx) => (
             <NavItem key={idx} {...item} expanded={expanded} />
           ))}
-
+        <hr />
         {user?.role === "admin" && (
           <div className="bg-gray-100 rounded-md p-2 space-y-2">
             {adminSubNav.map((item, idx) => (
