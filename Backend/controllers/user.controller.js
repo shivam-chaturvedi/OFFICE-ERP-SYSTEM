@@ -100,6 +100,10 @@ const removeUser=async (req,res)=>{
     if(!id){
       res.status(400).json({message:"/{id} is required !"})
     }
+    const user=await User.findOne({_id:id});
+    if(user.role=='admin'){
+      return res.status(400).json({message:"Admin can't be removed , You can edit info only for admin!"})
+    }
     await User.deleteOne({_id:id})
     res.status(200).json({message:"User Removed !"})
   }catch(err){

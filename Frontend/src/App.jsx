@@ -34,6 +34,8 @@ import Recruitments from "./pages/hr/Recruitments";
 import ManageEmployees from "./pages/admin/ManageEmployees";
 import ManageTrainees from "./pages/admin/ManageTrainees";
 import ManageClients from "./pages/admin/ManageClients";
+import ManageTasks from "./pages/admin/ManageTasks";
+import ManageTeams from "./pages/admin/ManageTeams";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -156,7 +158,7 @@ function App() {
           }
         />
 
-         <Route
+        <Route
           path="/manage-employees"
           element={
             <ProtectedRoute role="admin">
@@ -165,7 +167,7 @@ function App() {
           }
         />
 
-         <Route
+        <Route
           path="/manage-trainees"
           element={
             <ProtectedRoute role="admin">
@@ -174,16 +176,16 @@ function App() {
           }
         />
 
-         <Route
-          path="/tasks"
+        <Route
+          path="/manage-tasks"
           element={
             <ProtectedRoute role="admin">
-              <Tasks />
+              <ManageTasks />
             </ProtectedRoute>
           }
         />
 
-         <Route
+        <Route
           path="/clients"
           element={
             <ProtectedRoute role="admin">
@@ -192,9 +194,14 @@ function App() {
           }
         />
 
-        
-
-
+        <Route
+          path="/manage-teams"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageTeams />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Employee Routes */}
         <Route

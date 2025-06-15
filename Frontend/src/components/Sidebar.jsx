@@ -41,8 +41,10 @@ const Sidebar = ({ user, setUser }) => {
   const adminNavItems = [
     { icon: <Home size={20} />, label: "Home", to: "/" },
     { icon: <Settings size={20} />, label: "Profile", to: "/admin-profile" },
-    { icon: <ListTodo size={20} />, label: "Tasks", to: "/tasks" },
+    { icon: <ListTodo size={20} />, label: "Manage Tasks", to: "/manage-tasks" },
     { icon: <Users size={20} />, label: "Manage Users", to: "/manage-users" },
+    
+    { icon: <Users size={20} />, label: "Manage Teams", to: "/manage-teams" },
     {
       icon: <UserCog size={20} />,
       label: "Manage Employees",
@@ -53,6 +55,7 @@ const Sidebar = ({ user, setUser }) => {
       label: "Manage Trainees",
       to: "/manage-trainees",
     },
+    
   ];
 
   const adminSubNav = [

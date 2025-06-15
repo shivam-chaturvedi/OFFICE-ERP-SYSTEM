@@ -46,8 +46,9 @@ const Home = ({ user, setUser }) => {
 
 <button onClick={() => navigate("/manage-employees")} className={buttonStyle}>Manage Employees</button>
 <button onClick={() => navigate("/manage-trainees")} className={buttonStyle}>Manage Trainess</button>
-<button onClick={() => navigate("/tasks")} className={buttonStyle}>Tasks</button>
+<button onClick={() => navigate("/manage-tasks")} className={buttonStyle}>Manage Tasks</button>
 <button onClick={() => navigate("/clients")} className={buttonStyle}>Clients</button>
+<button onClick={() => navigate("/manage-teams")} className={buttonStyle}>Manage Teams</button>
 
 <button onClick={() => navigate("/manage-leaves")} className={buttonStyle}>Manage Leaves</button>
 <button onClick={() => navigate("/reports")} className={buttonStyle}>Reports</button>

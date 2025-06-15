@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import config from "../config";
+import Alert from "../components/Alert";
+import Loader from "../components/Loader";
 
-const Login = ({setUser}) => {
+const Login = ({ setUser }) => {
+  const [loader, setLoader] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const [alert, setAlert] = useState({
-    type: "", 
+    type: "",
     message: "",
   });
 
@@ -31,6 +34,7 @@ const Login = ({setUser}) => {
     }
 
     try {
+      setLoader(true);
       const res = await fetch(`${config.BACKEND_URL}/api/auth/login`, {
         method: "POST",
         headers: {
@@ -65,35 +69,16 @@ const Login = ({setUser}) => {
         type: "error",
         message: "Network error. Please try again.",
       });
+    } finally {
+      setLoader(false);
     }
 
     setFormData({ email: "", password: "" });
   };
 
-  const renderAlert = () => {
-    if (!alert.message) return null;
-
-    const baseClass =
-      "p-4 mb-4 text-sm rounded-lg font-medium text-center";
-    const successClass =
-      "text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400";
-    const errorClass =
-      "text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400";
-
-    return (
-      <div
-        className={`${baseClass} ${
-          alert.type === "success" ? successClass : errorClass
-        }`}
-        role="alert"
-      >
-        {alert.message}
-      </div>
-    );
-  };
-
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
+     {loader && <Loader />}
       <div className="mb-6 text-center">
         <h1 className="text-4xl font-bold mb-6 text-gray-800">
           Welcome to TAC Services Pvt. Ltd
@@ -103,8 +88,7 @@ const Login = ({setUser}) => {
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-lg">
         <h2 className="text-2xl font-bold mb-6 text-center">Login to ERP</h2>
 
-        {renderAlert()}
-
+        <Alert alert={alert} setAlert={setAlert} />
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium">Email</label>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import AddUserModal from "../../components/AddUserModal";
 import config from "../../config";
 import Loader from "../../components/Loader";
+import Alert from "../../components/Alert";
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
@@ -35,31 +36,6 @@ const ManageUsers = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  const renderAlert = () => {
-    if (!alert.message) return null;
-
-    const baseClass =
-      "p-4 mb-4 animate-bounce text-sm rounded-lg font-medium text-center";
-    const successClass =
-      "text-green-800 bg-green-50 dark:bg-gray-800 dark:text-green-400";
-    const errorClass =
-      "text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400";
-
-    return (
-      <div
-        className={`${baseClass} ${
-          alert.type === "success" ? successClass : errorClass
-        }`}
-        role="alert"
-      >
-        {alert.message}
-        {setTimeout(() => {
-          setAlert({});
-        }, 2000)}
-      </div>
-    );
-  };
 
   const deleteUser = async (id) => {
     const confirmed = confirm(
@@ -133,7 +109,7 @@ const ManageUsers = () => {
 
   return (
     <div className="p-6">
-      {renderAlert()}
+      <Alert alert={alert} setAlert={setAlert} />
       {loader && <Loader />}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Manage Users</h1>
@@ -278,24 +254,28 @@ const ManageUsers = () => {
                 <td className="px-2 py-3">{user.phone}</td>
                 <td className="px-2 py-3 text-blue-800">
                   <a href={`mailto:${user.email}`} className="hover:underline">
-                  {user.email}
+                    {user.email}
                   </a>
-                  </td>
+                </td>
 
                 <td className="px-2 py-3">{user.salary}</td>
                 <td className="px-2 py-3 space-x-2">
                   <button
                     onClick={() => setEditUser(user)}
-                    className="text-sm bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700"
+                    className="cursor-pointer text-sm bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700"
                   >
                     Edit
                   </button>
-                  <button
-                    onClick={() => deleteUser(user._id)}
-                    className="text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
+                  {user &&
+                    user.role !==
+                      "admin" && (
+                        <button
+                          onClick={() => deleteUser(user._id)}
+                          className="cursor-pointer text-sm bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
+                        >
+                          Delete
+                        </button>
+                      )}
                 </td>
               </tr>
             ))}
