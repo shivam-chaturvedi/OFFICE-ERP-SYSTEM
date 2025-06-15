@@ -1,102 +1,122 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+
+
+
+// ...imports and useEffect remain same
 
 const Home = ({ user, setUser }) => {
-  const isAdmin = user?.role === "admin";
-  const isEmployee = user?.role === "employee";
-  const navigate = useNavigate();
+  const isAdmin = user?.role === "admin";
+  const isEmployee = user?.role === "employee";
+  const isHR = user?.role === "hr";
 
-  return (
-    <div className="flex h-screen">
-      <div className="flex-1 flex flex-col">
-        <main className="p-6 bg-gray-50 min-h-screen">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">
-              Welcome, {user?.name || "User"}!
-            </h1>
-            <p className="text-gray-600">
-              Here’s a quick overview of your ERP dashboard.
-            </p>
-          </div>
+  const navigate = useNavigate();
 
-          {isAdmin && (
-            <>
-              {/* Admin Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                {user?.stats?.map((stat, idx) => (
-                  <div key={idx} className="bg-white rounded-xl shadow p-4">
-                    <h2 className="text-sm text-gray-500">{stat.label}</h2>
-                    <p className="text-xl font-semibold text-gray-800">{stat.value}</p>
-                  </div>
-                ))}
-              </div>
+  const buttonStyle = "hover:bg-[#000000] text-white px-4 py-2 rounded cursor-pointer bg-gray-700 hover:text-green-500 transition";
 
-              {/* Admin Quick Actions */}
-              <h2 className="text-lg font-bold text-gray-700 mb-2">Quick Actions</h2>
-              <div className="flex flex-wrap gap-4 mb-6">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700" onClick={() => navigate("/admin-profile")}>Profile</button>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700" onClick={() => navigate("/manage-users")}>Manage Users</button>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-md shadow hover:bg-purple-700" onClick={() => navigate("/manage-leaves")}>Manage Leaves</button>
-                <button className="bg-yellow-600 text-white px-4 py-2 rounded-md shadow hover:bg-yellow-700" onClick={() => navigate("/reports")}>Reports</button>
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700" onClick={() => navigate("/notifications")}>Notifications</button>
-                <button className="bg-pink-600 text-white px-4 py-2 rounded-md shadow hover:bg-pink-700" onClick={() => navigate("/salary-details")}>Salary Details</button>
-              </div>
+  return (
+    <div className="flex h-screen">
+      <div className="flex-1 flex flex-col">
+        <main className="p-6 bg-gray-50 min-h-screen">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">
+              Welcome, {user?.name || "User"}!
+            </h1>
+            <p className="text-gray-600">
+              Here’s a quick overview of your ERP dashboard.
+            </p>
+          </div>
 
-              {/* Admin Activity */}
-              <div>
-                <h2 className="text-lg font-bold text-gray-700 mb-2">Recent Activity</h2>
-                <div className="bg-white shadow rounded-xl p-4 space-y-2 text-sm text-gray-700">
-                  {user?.activity?.map((log, idx) => (
-                    <div key={idx}>✔️ {log}</div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+          {/* Admin */}
+          {isAdmin && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                {user?.stats?.map((stat, idx) => (
+                  <div key={idx} className="bg-white rounded-xl shadow p-4">
+                    <h2 className="text-sm text-gray-500">{stat.label}</h2>
+                    <p className="text-xl font-semibold text-gray-800">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
 
-          {isEmployee && (
-            <>
-              {/* Employee Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                {user?.stats?.map((stat, idx) => (
-                  <div key={idx} className="bg-white rounded-xl shadow p-4">
-                    <h2 className="text-sm text-gray-500">{stat.label}</h2>
-                    <p className="text-xl font-semibold text-gray-800">{stat.value}</p>
-                  </div>
-                ))}
-              </div>
+              <h2 className="text-lg font-bold text-gray-700 mb-2">Quick Actions</h2>
+              <div className="flex flex-wrap gap-4 mb-6">
+                <button onClick={() => navigate("/admin-profile")} className={buttonStyle}>Profile</button>
+                <button onClick={() => navigate("/manage-users")} className={buttonStyle}>Manage Users</button>
+                <button onClick={() => navigate("/manage-leaves")} className={buttonStyle}>Manage Leaves</button>
+                <button onClick={() => navigate("/reports")} className={buttonStyle}>Reports</button>
+                <button onClick={() => navigate("/notifications")} className={buttonStyle}>Notifications</button>
+                <button onClick={() => navigate("/salary-details")} className={buttonStyle}>Salary Details</button>
+              </div>
+            </>
+          )}
 
-              {/* Employee Quick Actions */}
-              <h2 className="text-lg font-bold text-gray-700 mb-2">Quick Actions</h2>
-              <div className="flex flex-wrap gap-4 mb-6">
-                <button className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700" onClick={() => navigate("/profile")}>My Profile</button>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700" onClick={() => navigate("/leave-requests")}>Apply Leave</button>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-md shadow hover:bg-purple-700" onClick={() => navigate("/my-attendance")}>Attendance</button>
-                <button className="bg-yellow-600 text-white px-4 py-2 rounded-md shadow hover:bg-yellow-700" onClick={() => navigate("/tasks")}>My Tasks</button>
-                <button className="bg-pink-600 text-white px-4 py-2 rounded-md shadow hover:bg-pink-700" onClick={() => navigate("/salary-slips")}>Salary Slip</button>
-                <button className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow hover:bg-indigo-700" onClick={() => navigate("/announcements")}>Announcements</button>
-              </div>
+          {/* Employee */}
+          {isEmployee && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                {user?.stats?.map((stat, idx) => (
+                  <div key={idx} className="bg-white rounded-xl shadow p-4">
+                    <h2 className="text-sm text-gray-500">{stat.label}</h2>
+                    <p className="text-xl font-semibold text-gray-800">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
 
-              {/* Employee Announcements */}
-              <div>
-                <h2 className="text-lg font-bold text-gray-700 mb-2">Recent Announcements</h2>
-                <div className="bg-white shadow rounded-xl p-4 space-y-2 text-sm text-gray-700">
-                  {user?.announcements?.map((note, idx) => (
-                    <div key={idx}>📢 {note}</div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
+              <h2 className="text-lg font-bold text-gray-700 mb-2">Quick Actions</h2>
+              <div className="flex flex-wrap gap-4 mb-6">
+                <button onClick={() => navigate("/profile")} className={buttonStyle}>My Profile</button>
+                <button onClick={() => navigate("/leave-requests")} className={buttonStyle}>Apply Leave</button>
+                <button onClick={() => navigate("/my-attendance")} className={buttonStyle}>Attendance</button>
+                <button onClick={() => navigate("/tasks")} className={buttonStyle}>My Tasks</button>
+                <button onClick={() => navigate("/salary-slips")} className={buttonStyle}>Salary Slip</button>
+                <button onClick={() => navigate("/announcements")} className={buttonStyle}>Announcements</button>
+              </div>
+            </>
+          )}
 
-          {!isAdmin && !isEmployee && (
-            <p className="text-gray-500">
-              Your role is not defined or not authorized.
-            </p>
-          )}
-        </main>
-      </div>
-    </div>
-  );
+          {/* HR */}
+          {isHR && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                {user?.stats?.map((stat, idx) => (
+                  <div key={idx} className="bg-white rounded-xl shadow p-4">
+                    <h2 className="text-sm text-gray-500">{stat.label}</h2>
+                    <p className="text-xl font-semibold text-gray-800">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <h2 className="text-lg font-bold text-gray-700 mb-2">Quick Actions</h2>
+              <div className="flex flex-wrap gap-4 mb-6">
+                <button onClick={() => navigate("/hr-employee-directory")} className={buttonStyle}>Employee Directory</button>
+                <button onClick={() => navigate("/hr-leave-approvals")} className={buttonStyle}>Leave Approvals</button>
+                <button onClick={() => navigate("/hr-reports")} className={buttonStyle}>Reports</button>
+                <button onClick={() => navigate("/hr-notices")} className={buttonStyle}>Notices</button>
+                <button onClick={() => navigate("/hr-recruitments")} className={buttonStyle}>Recruitments</button>
+              </div>
+            </>
+          )}
+{/* Recent Activity */}
+<div className="mt-8">
+  <h2 className="text-lg font-bold text-gray-700 mb-4">Recent Activity</h2>
+  <div className="bg-white shadow rounded-xl p-4 space-y-3">
+    {/* Sample activities - Replace with dynamic data if needed */}
+  
+
+ 
+  </div>
+</div>
+
+
+          {!isAdmin && !isEmployee && !isHR && (
+            <p className="text-gray-500">Your role is not defined or not authorized.</p>
+          )}
+        </main>
+      </div>
+    </div>
+
+  );
 };
 
 export default Home;

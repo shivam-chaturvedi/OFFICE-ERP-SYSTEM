@@ -26,6 +26,12 @@ import Attendance from "./pages/employee/Attendance";
 import Tasks from "./pages/employee/Tasks";
 import Announcements from "./pages/employee/Announcements";
 
+import HREmployeeDirectory from "./pages/hr/HREmployeeDirectory";
+import HRLeaveApprovals from "./pages/hr/HRLeaveApprovals";
+import HRReports from "./pages/hr/HRReports";
+import HRNotices from "./pages/hr/HRNotices";
+import Recruitments from "./pages/hr/Recruitments";
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -168,7 +174,7 @@ function App() {
           path="/salary-slips"
           element={
             <ProtectedRoute role="employee">
-              <SalarySlip user={user}/>
+              <SalarySlip user={user} />
             </ProtectedRoute>
           }
         />
@@ -193,6 +199,48 @@ function App() {
           element={
             <ProtectedRoute role="employee">
               <Announcements />
+            </ProtectedRoute>
+          }
+        />
+        {/* HR Routes */}
+        <Route
+          path="/hr-employee-directory"
+          element={
+            <ProtectedRoute role="hr">
+                    <HREmployeeDirectory />   {" "}
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/hr-leave-approvals"
+          element={
+            <ProtectedRoute role="hr">
+                    <HRLeaveApprovals />   {" "}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr-reports"
+          element={
+            <ProtectedRoute role="hr">
+                    <HRReports />   {" "}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr-notices"
+          element={
+            <ProtectedRoute role="hr">
+                    <HRNotices />   {" "}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/hr-recruitments"
+          element={
+            <ProtectedRoute role="hr">
+              <Recruitments />
             </ProtectedRoute>
           }
         />
