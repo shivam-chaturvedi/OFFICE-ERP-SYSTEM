@@ -10,8 +10,12 @@ const addUser = async (req, res) => {
       phone,
       email,
       password,
-      salary
+      address,
+      emergency_contact,
+      date_of_birth,
+      gender,
     } = req.body;
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Email already exists" });
@@ -26,7 +30,10 @@ const addUser = async (req, res) => {
       phone,
       email,
       password: hashedPassword,
-      salary,
+      address,
+      emergency_contact,
+      date_of_birth,
+      gender,
     });
 
     const savedUser = await newUser.save();
@@ -44,7 +51,7 @@ const addUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select("-password").lean();
+    const users = await User.find({role:{$ne:"employee"}}).select("-password").lean();
 
     res.status(200).json({ users });
   } catch (error) {
@@ -56,7 +63,19 @@ const getAllUsers = async (req, res) => {
 
 const editUser = async (req, res) => {
   try {
-    const { _id, name, role, position, phone, email, password,salary } = req.body;
+    const {
+      _id,
+      name,
+      role,
+      position,
+      phone,
+      email,
+      password,
+      address,
+      emergency_contact,
+      date_of_birth,
+      gender,
+    } = req.body;
 
     const user = await User.findById(_id);
     if (!user) {
@@ -75,7 +94,10 @@ const editUser = async (req, res) => {
     user.position = position || user.position;
     user.phone = phone || user.phone;
     user.email = email || user.email;
-    user.salary=salary || user.salary
+    user.address = address || user.address;
+    user.emergency_contact = emergency_contact || user.emergency_contact;
+    user.date_of_birth = date_of_birth || user.date_of_birth;
+    user.gender = gender || user.gender;
 
     if (password && password.trim() !== "") {
       user.password = await bcrypt.hash(password, 10);
@@ -94,22 +116,26 @@ const editUser = async (req, res) => {
   }
 };
 
-const removeUser=async (req,res)=>{
-  try{
-    const id=req.params.id;
-    if(!id){
-      res.status(400).json({message:"/{id} is required !"})
+const removeUser = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      res.status(400).json({ message: "/{id} is required !" });
     }
-    const user=await User.findOne({_id:id});
-    if(user.role=='admin'){
-      return res.status(400).json({message:"Admin can't be removed , You can edit info only for admin!"})
+    const user = await User.findOne({ _id: id });
+    if (user.role == "admin") {
+      return res
+        .status(400)
+        .json({
+          message: "Admin can't be removed , You can edit info only for admin!",
+        });
     }
-    await User.deleteOne({_id:id})
-    res.status(200).json({message:"User Removed !"})
-  }catch(err){
-    res.status(400).json({message:err.message})
+    await User.deleteOne({ _id: id });
+    res.status(200).json({ message: "User Removed !" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
-}
+};
 
 module.exports = {
   addUser,

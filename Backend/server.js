@@ -2,7 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
+const employeeRoutes = require("./routes/employee.routes");
+
 const authMiddleware = require("./middlewares/auth.middleware");
+
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const User = require("./models/user.model");
@@ -42,6 +45,7 @@ mongoose
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/employees",employeeRoutes)
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {

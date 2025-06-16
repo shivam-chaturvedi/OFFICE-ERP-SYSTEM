@@ -11,7 +11,7 @@ export default function Alert({ alert, setAlert }) {
       timer = setTimeout(() => {
         setVisible(false);
         setTimeout(() => setAlert({}), 300); // wait for fade-out
-      }, 30000);
+      }, 3000);
     }
 
     return () => clearTimeout(timer);

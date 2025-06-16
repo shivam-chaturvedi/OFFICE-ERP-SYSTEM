@@ -12,8 +12,26 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    salary:{type:String,required:true}
-  }, 
+
+    // Address
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      country: String,
+      postal_code: String,
+    },
+
+    // Emergency Contact
+    emergency_contact: {
+      name: String,
+      relation: String,
+      contact_number: String,
+    },
+
+    date_of_birth: { type: Date },
+    gender: { type: String, enum: ["Male", "Female", "Other"] },
+  },
   { timestamps: true }
 );
 
