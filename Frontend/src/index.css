@@ -266,5 +266,9 @@ body {
   }
 }
 
+.dialog-overlay-blur {
+  @apply fixed inset-0 z-50 backdrop-blur-md bg-black/10;
+}
+
 
  
