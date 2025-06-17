@@ -138,7 +138,7 @@ const Sidebar = ({ user, setUser }) => {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 px-2 sm:px-4 space-y-2 overflow-y-auto">
+      <div className="flex-1 px-2 sm:px-4 space-y-2 overflow-y-auto scrollbar-hide">
         {user?.role === "admin" &&
           adminNavItems.map((item, idx) => (
             <NavItem key={idx} {...item} expanded={expanded} />

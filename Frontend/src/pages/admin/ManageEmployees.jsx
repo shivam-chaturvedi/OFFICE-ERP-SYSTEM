@@ -3,6 +3,7 @@ import config from "../../config";
 import AddEmployeeModal from "../../components/AddEmployeeModal";
 import Loader from "../../components/Loader";
 import Alert from "../../components/Alert";
+import EditEmployeeModal from "../../components/EditEmployeeModal";
 
 export default function ManageEmployees() {
   const [employees, setEmployees] = useState([]);
@@ -35,23 +36,19 @@ export default function ManageEmployees() {
     setEditModal(true);
   };
 
-  const handleEditChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedEmployee((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const saveEdit = async () => {
     try {
-      const res = await fetch(`/api/employees/${selectedEmployee._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(selectedEmployee),
-      });
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/employees/edit/${selectedEmployee._id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(selectedEmployee),
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to update employee");
 
@@ -120,63 +117,21 @@ export default function ManageEmployees() {
       </div>
 
       {/* Edit Modal */}
-      {editModal && selectedEmployee && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-4 md:p-6 rounded-lg w-full max-w-lg mx-2">
-            <h2 className="text-xl font-semibold mb-4">Edit Employee</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="number"
-                name="salary"
-                value={selectedEmployee.salary}
-                onChange={handleEditChange}
-                placeholder="Salary"
-                className="border p-2"
-              />
-              <input
-                type="text"
-                name="work_location"
-                value={selectedEmployee.work_location}
-                onChange={handleEditChange}
-                placeholder="Work Location"
-                className="border p-2"
-              />
-              <select
-                name="status"
-                value={selectedEmployee.status}
-                onChange={handleEditChange}
-                className="border p-2"
-              >
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-                <option value="Resigned">Resigned</option>
-                <option value="Terminated">Terminated</option>
-              </select>
-              <input
-                type="text"
-                name="domain"
-                value={selectedEmployee.domain}
-                onChange={handleEditChange}
-                placeholder="Domain"
-                className="border p-2"
-              />
-            </div>
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                onClick={() => setEditModal(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveEdit}
-                className="bg-green-600 text-white px-4 py-2 rounded"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+      {editModal && (
+        <EditEmployeeModal
+          selectedEmployee={selectedEmployee}
+          onClose={() => {
+            setEditModal(false);
+          }}
+          onSuccess={() => {
+            setAlert({
+              type: "success",
+              message: "Employee Edited Successfully !",
+            });
+
+            fetchEmployees();
+          }}
+        />
       )}
 
       {/* Add Modal */}
@@ -188,6 +143,7 @@ export default function ManageEmployees() {
               type: "success",
               message: "Employee Added Successfully !",
             });
+
             fetchEmployees();
           }}
         />
