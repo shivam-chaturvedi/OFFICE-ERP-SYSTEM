@@ -52,15 +52,15 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
 
   useEffect(() => {
     if (selectedEmployee) {
-      setForm(selectedEmployee);
-      console.log(selectedEmployee);
-      console.log(form);
+      const { user, ...empDetails } = selectedEmployee;
+      setForm({
+        ...empDetails,
+        ...user,
+        address: { ...user?.address },
+        emergency_contact: { ...user?.emergency_contact },
+      });
     }
   }, [selectedEmployee]);
-
-  useEffect(() => {
-    console.log("Updated form state:", form);
-  }, [form]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -75,10 +75,42 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
     }
   };
 
+  const preparePayload = () => {
+    const {
+      name,
+      email,
+      phone,
+      password,
+      position,
+      date_of_birth,
+      gender,
+      address,
+      emergency_contact,
+      ...employeeData
+    } = form;
+
+    return {
+      ...employeeData,
+      user: {
+        name,
+        email,
+        phone,
+        password,
+        position,
+        date_of_birth,
+        gender,
+        address,
+        emergency_contact,
+      },
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoader(true);
+      const payload = preparePayload();
+
       const res = await fetch(
         `${config.BACKEND_URL}/api/employees/edit/${selectedEmployee._id}`,
         {
@@ -87,9 +119,10 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             Authorization: "Bearer " + localStorage.getItem("token"),
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         }
       );
+
       const data = await res.json();
 
       if (res.ok) {
@@ -130,16 +163,15 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
 
         <h2 className="text-xl font-bold mb-4 text-center">Edit Employee</h2>
 
-        {/* All your form fields here, same as AddEmployeeModal (copy those JSX fields) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label required>Full Name</Label>
             <input
               type="text"
               name="name"
-              value={form.user.name}
+              value={form.name}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -148,9 +180,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="email"
               name="email"
-              value={form.user.email}
+              value={form.email}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -159,9 +191,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="phone"
-              value={form.user.phone}
+              value={form.phone}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -170,9 +202,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="password"
               name="password"
-              value={form.user.password}
+              value={form.password}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -181,9 +213,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="position"
-              value={form.user.position}
+              value={form.position}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -192,19 +224,19 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="date"
               name="date_of_birth"
-              value={form.user.date_of_birth}
+              value={form.date_of_birth ? form.date_of_birth.slice(0, 10) : ""}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
             <Label required>Gender</Label>
             <select
               name="gender"
-              value={form.user.gender}
+              value={form.gender}
               onChange={handleChange}
               required
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               <option value="">Select Gender</option>
               {genderOptions.map((g) => (
@@ -221,9 +253,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="address.street"
-              value={form.user.address?.street}
+              value={form.address.street}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -231,9 +263,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="address.city"
-              value={form.user.address?.city}
+              value={form.address.city}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -241,9 +273,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="address.state"
-              value={form.user.address?.state}
+              value={form.address.state}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -251,9 +283,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="address.country"
-              value={form.user.address?.country}
+              value={form.address.country}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -261,9 +293,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="address.postal_code"
-              value={form.user.address?.postal_code}
+              value={form.address.postal_code}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
 
@@ -273,9 +305,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="emergency_contact.name"
-              value={form.user.emergency_contact?.name}
+              value={form.emergency_contact.name}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -283,9 +315,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="emergency_contact.relation"
-              value={form.user.emergency_contact?.relation}
+              value={form.emergency_contact.relation}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -293,9 +325,9 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="text"
               name="emergency_contact.contact_number"
-              value={form.user.emergency_contact?.contact_number}
+              value={form.emergency_contact.contact_number}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
 
@@ -306,7 +338,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               value={form.department}
               onChange={handleChange}
               required
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               <option value="">Select Department</option>
               {departments.map((d) => (
@@ -322,10 +354,12 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
             <input
               type="date"
               name="date_of_joining"
-              value={form.date_of_joining}
+              value={
+                form.date_of_joining ? form.date_of_joining.slice(0, 10) : ""
+              }
               onChange={handleChange}
               required
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -335,7 +369,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="experience"
               value={form.experience}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -345,7 +379,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="skills"
               value={form.skills}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -355,7 +389,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="domain"
               value={form.domain}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -365,7 +399,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="salary"
               value={form.salary}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -376,7 +410,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="shift"
               value={form.shift}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               {shifts.map((s) => (
                 <option key={s} value={s}>
@@ -393,7 +427,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="work_location"
               value={form.work_location}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
 
@@ -403,7 +437,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
               name="status"
               value={form.status}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               {statusOptions.map((s) => (
                 <option key={s} value={s}>
@@ -414,7 +448,6 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
           </div>
         </div>
 
-        {/* At the end */}
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"

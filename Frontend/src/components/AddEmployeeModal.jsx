@@ -123,7 +123,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="name"
               value={form.name}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -134,7 +134,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="email"
               value={form.email}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -145,7 +145,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="phone"
               value={form.phone}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -156,7 +156,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="password"
               value={form.password}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -167,7 +167,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="position"
               value={form.position}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -178,7 +178,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="date_of_birth"
               value={form.date_of_birth}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -188,7 +188,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               value={form.gender}
               onChange={handleChange}
               required
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               <option value="">Select Gender</option>
               {genderOptions.map((g) => (
@@ -207,7 +207,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="address.street"
               value={form.address.street}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -217,7 +217,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="address.city"
               value={form.address.city}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -227,7 +227,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="address.state"
               value={form.address.state}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -237,7 +237,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="address.country"
               value={form.address.country}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -247,7 +247,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="address.postal_code"
               value={form.address.postal_code}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
 
@@ -259,7 +259,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="emergency_contact.name"
               value={form.emergency_contact.name}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -269,7 +269,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="emergency_contact.relation"
               value={form.emergency_contact.relation}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -279,7 +279,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="emergency_contact.contact_number"
               value={form.emergency_contact.contact_number}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
 
@@ -290,7 +290,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               value={form.department}
               onChange={handleChange}
               required
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               <option value="">Select Department</option>
               {departments.map((d) => (
@@ -309,7 +309,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               value={form.date_of_joining}
               onChange={handleChange}
               required
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -319,7 +319,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="experience"
               value={form.experience}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -329,7 +329,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="skills"
               value={form.skills}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -339,7 +339,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="domain"
               value={form.domain}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
           <div>
@@ -349,7 +349,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="salary"
               value={form.salary}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
               required
             />
           </div>
@@ -360,7 +360,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="shift"
               value={form.shift}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               {shifts.map((s) => (
                 <option key={s} value={s}>
@@ -377,7 +377,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="work_location"
               value={form.work_location}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             />
           </div>
 
@@ -387,7 +387,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               name="status"
               value={form.status}
               onChange={handleChange}
-              className="border-2 bg-yellow-50 shadow-lg rounded-lg p-2"
+              className="employee-form"
             >
               {statusOptions.map((s) => (
                 <option key={s} value={s}>

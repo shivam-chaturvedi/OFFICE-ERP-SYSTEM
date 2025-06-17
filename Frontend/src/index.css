@@ -276,9 +276,7 @@ body {
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 @layer utilities {
   .animate-fade-in-up {
@@ -307,4 +305,8 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;             /* Chrome, Safari */
+}
+
+.employee-form{
+  @apply border flex justify-around rounded-sm p-1 w-full bg-gray-200 font-serif capitalize text-xl
 }
