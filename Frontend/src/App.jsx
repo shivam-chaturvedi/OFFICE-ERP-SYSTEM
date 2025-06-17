@@ -41,10 +41,10 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-//   useEffect(() => {
-//     setUser({ name: "TestUser", role: "admin" });
-//     setLoading(false);
-//   }, []);
+  useEffect(() => {
+    setUser({ name: "TestUser", role: "admin" });
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
