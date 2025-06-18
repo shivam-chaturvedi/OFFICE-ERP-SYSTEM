@@ -25,6 +25,8 @@ const Sidebar = ({ user, setUser }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+
+
   const toggleSidebar = () => {
     setExpanded((prev) => !prev);
   };
@@ -43,6 +45,7 @@ const Sidebar = ({ user, setUser }) => {
     { icon: <Settings size={20} />, label: "Profile", to: "/admin-profile" },
     { icon: <ListTodo size={20} />, label: "Manage Tasks", to: "/manage-tasks" },
     { icon: <Users size={20} />, label: "Manage Users", to: "/manage-users" },
+    { icon: <Users size={20} />, label: "Manage Department", to: "/manage-departments" },
     
     { icon: <Users size={20} />, label: "Manage Teams", to: "/manage-teams" },
     {

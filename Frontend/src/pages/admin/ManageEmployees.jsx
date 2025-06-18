@@ -71,7 +71,7 @@ export default function ManageEmployees() {
 
       <div className="flex justify-end mb-4">
         <button
-          className="bg-green-600 text-white px-4 py-2 rounded"
+          className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded"
           onClick={() => setShowAddModal(true)}
         >
           Add Employee
@@ -101,10 +101,10 @@ export default function ManageEmployees() {
                 <td className="px-2 md:px-4 py-2">
                   {emp.department?.name || "N/A"}
                 </td>
-                <td className="px-2 md:px-4 py-2">₹{emp.salary}</td>
+                <td className="px-2 md:px-4 py-2">₹{Object.values(emp.salary).reduce((sum,val)=>sum+val,0)}</td>
                 <td className="px-2 md:px-4 py-2">
                   <button
-                    className="bg-blue-500 text-white px-3 py-1 rounded"
+                    className="bg-blue-500 cursor-pointer text-white px-3 py-1 rounded"
                     onClick={() => handleEditClick(emp)}
                   >
                     Edit

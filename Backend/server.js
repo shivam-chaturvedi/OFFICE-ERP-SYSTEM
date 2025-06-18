@@ -29,7 +29,7 @@ mongoose
     try {
       const adminUser = await User.create({
         name: "admin",
-        role: "admin", 
+        roles: ["admin"], 
         position: "ADMIN",
         phone: "1234567891",
         email: "admin@gmail.com", 

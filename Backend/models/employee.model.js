@@ -15,13 +15,22 @@ const employeeSchema = new mongoose.Schema({
   projects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project" }],
 
   // Compensation
-  salary: { type: Number, required: true },
+  salary: {
+    type: Map,
+    of: Number,
+    required: true,
+  },
+
   bonuses: [{ amount: Number, reason: String, date: Date }],
 
   // Work Details
   shift: { type: String, enum: ["Morning", "Evening", "Night", "General"] },
   work_location: { type: String },
-  status: { type: String, enum: ["Active", "On Leave", "Resigned", "Terminated"], default: "Active" },
+  status: {
+    type: String,
+    enum: ["Active", "On Leave", "Resigned", "Terminated"],
+    default: "Active",
+  },
 
   // Documents
   documents: [

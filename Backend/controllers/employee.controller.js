@@ -3,6 +3,8 @@ const User = require("../models/user.model");
 const Employee = require("../models/employee.model");
 const Department=require("../models/department.model")
 
+
+
 const addEmployee = async (req, res) => {
   try {
     const {
@@ -50,7 +52,7 @@ const addEmployee = async (req, res) => {
 
       user = new User({
         name,
-        role: "employee",
+        roles: ["employee"],
         position,
         phone,
         email,
@@ -69,8 +71,10 @@ const addEmployee = async (req, res) => {
     if(department.toLowerCase()!=='na' && !dept){
         return res.status(400).json({message:"No Such Department Exist."});
     }
+
     // Step 3: Create Employee entry
     const employee = new Employee({
+      _id:user._id,
       user: user._id,
       department:dept?._id,
       manager_id,
@@ -110,4 +114,8 @@ const getAllEmployees = async (req, res) => {
 };
 
 
-module.exports = { addEmployee ,getAllEmployees};
+const editEmployee=(req,res)=>{
+  
+}
+
+module.exports = { addEmployee ,getAllEmployees,editEmployee};

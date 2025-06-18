@@ -2,10 +2,14 @@ import React, { useState } from "react";
 import config from "../config";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
+import SalaryInput from "./SalaryInput";
+import { useEffect } from "react";
 
 function AddEmployeeModal({ onClose, onSuccess }) {
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
+  const [salary, setSalary] = useState([{type:"basic",amount:""}]);
+  
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -65,6 +69,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    form.salary=salary;
     try {
       setLoader(true);
       const res = await fetch(`${config.BACKEND_URL}/api/employees/add`, {
@@ -98,6 +103,10 @@ function AddEmployeeModal({ onClose, onSuccess }) {
     </label>
   );
 
+  useEffect(()=>{
+    console.log(salary)
+  },[salary])
+
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50 p-4">
       {loader && <Loader />}
@@ -105,7 +114,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
         onSubmit={handleSubmit}
         className="relative bg-white p-6 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl"
       >
-      <Alert alert={alert} setAlert={setAlert} />
+        <Alert alert={alert} setAlert={setAlert} />
         <button
           type="button"
           onClick={onClose}
@@ -172,8 +181,9 @@ function AddEmployeeModal({ onClose, onSuccess }) {
             />
           </div>
           <div>
-            <Label>Date of Birth</Label>
+            <Label required>Date of Birth</Label>
             <input
+              required
               type="date"
               name="date_of_birth"
               value={form.date_of_birth}
@@ -342,16 +352,10 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               className="employee-form"
             />
           </div>
+
           <div>
             <Label required>Salary</Label>
-            <input
-              type="number"
-              name="salary"
-              value={form.salary}
-              onChange={handleChange}
-              className="employee-form"
-              required
-            />
+            <SalaryInput setSalary={setSalary} salary={salary}/>
           </div>
 
           <div>

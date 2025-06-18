@@ -36,15 +36,16 @@ import ManageTrainees from "./pages/admin/ManageTrainees";
 import ManageClients from "./pages/admin/ManageClients";
 import ManageTasks from "./pages/admin/ManageTasks";
 import ManageTeams from "./pages/admin/ManageTeams";
+import ManageDepartments from "./pages/admin/ManageDepartments";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-//   useEffect(() => {
-//     setUser({ name: "TestUser", role: "admin" });
-//     setLoading(false);
-//   }, []);
+  //   useEffect(() => {
+  //     setUser({ name: "TestUser", role: "admin" });
+  //     setLoading(false);
+  //   }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -63,6 +64,11 @@ function App() {
 
         if (res.ok) {
           const data = await res.json();
+          if (data.user.roles.includes("admin")) {
+            data.user.role = "admin";
+          } else {
+            data.user.role = user.roles[0];
+          }
           setUser(data.user);
         } else {
           localStorage.removeItem("token");
@@ -204,6 +210,15 @@ function App() {
           element={
             <ProtectedRoute role="admin">
               <ManageTeams />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/manage-departments"
+          element={
+            <ProtectedRoute role="admin">
+              <ManageDepartments />
             </ProtectedRoute>
           }
         />
