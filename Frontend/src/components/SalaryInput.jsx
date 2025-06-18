@@ -4,7 +4,7 @@ import Alert from "../components/Alert";
 import { useEffect } from "react";
 
 function SalaryInput({ salary, setSalary}) {
-  const [salaryComponents, setSalaryComponents] = useState(salary);
+  const [salaryComponents, setSalaryComponents] = useState([]);
   const [editMode, setEditMode] = useState(true);
   const [alert, setAlert] = useState({});
 
@@ -45,7 +45,7 @@ function SalaryInput({ salary, setSalary}) {
       }
     });
     if (flag) {
-      setSalary(salaryObj);
+      setSalary(salaryComponents);
       setEditMode(false);
     }
   };

@@ -1,9 +1,17 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const Employee = require("../models/employee.model");
-const Department=require("../models/department.model")
+const Department = require("../models/department.model");
 
-
+function convertToSalaryObject(arr) {
+  const salaryObj = {};
+  arr.forEach(({ type, amount }) => {
+    if (type && amount !== "") {
+      salaryObj[type] = Number(amount);
+    }
+  });
+  return salaryObj;
+}
 
 const addEmployee = async (req, res) => {
   try {
@@ -35,13 +43,16 @@ const addEmployee = async (req, res) => {
       documents,
     } = req.body;
 
-
     // Step 1: Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      const existingEmployee = await Employee.findOne({ user: existingUser._id });
+      const existingEmployee = await Employee.findOne({
+        user: existingUser._id,
+      });
       if (existingEmployee) {
-        return res.status(400).json({ message: "Employee already exists for this email." });
+        return res
+          .status(400)
+          .json({ message: "Employee already exists for this email." });
       }
     }
 
@@ -67,16 +78,17 @@ const addEmployee = async (req, res) => {
     } else {
       user = existingUser;
     }
-    const dept=await Department.findOne({name:new String(department).toLowerCase()});
-    if(department.toLowerCase()!=='na' && !dept){
-        return res.status(400).json({message:"No Such Department Exist."});
+    const dept = await Department.findOne({
+      name: new String(department).toLowerCase(),
+    });
+    if (department.toLowerCase() !== "na" && !dept) {
+      return res.status(400).json({ message: "No Such Department Exist." });
     }
-
     // Step 3: Create Employee entry
     const employee = new Employee({
-      _id:user._id,
+      _id: user._id,
       user: user._id,
-      department:dept?._id,
+      department: dept?._id,
       manager_id,
       date_of_joining,
       experience,
@@ -84,7 +96,7 @@ const addEmployee = async (req, res) => {
       domain,
       certifications,
       projects,
-      salary,
+      salary: convertToSalaryObject(salary),
       bonuses,
       shift,
       work_location,
@@ -100,11 +112,12 @@ const addEmployee = async (req, res) => {
       employee,
     });
   } catch (err) {
-    console.log(err.message)
-    res.status(500).json({ message: "Failed to add employee", error: err.message });
+    console.log(err.message);
+    res
+      .status(500)
+      .json({ message: "Failed to add employee", error: err.message });
   }
 };
-
 
 const getAllEmployees = async (req, res) => {
   const employees = await Employee.find()
@@ -113,9 +126,109 @@ const getAllEmployees = async (req, res) => {
   res.json({ employees });
 };
 
+const editEmployee = async (req, res) => {
+  try {
+    const {
+      _id, // employee id (same as user id)
+      name,
+      email,
+      phone,
+      password,
+      position,
+      address,
+      emergency_contact,
+      date_of_birth,
+      gender,
 
-const editEmployee=(req,res)=>{
-  
-}
+      department,
+      manager_id,
+      date_of_joining,
+      experience,
+      skills,
+      domain,
+      certifications,
+      projects,
+      salary,
+      bonuses,
+      shift,
+      work_location,
+      status,
+      documents,
+    } = req.body;
 
-module.exports = { addEmployee ,getAllEmployees,editEmployee};
+    if (!_id) {
+      return res
+        .status(400)
+        .json({ message: "Employee ID is required for update." });
+    }
+
+    const user = await User.findById(_id);
+    if (user.email !== email) {
+      const userWithGivenEmail = await User.findOne({ email });
+      if (userWithGivenEmail) {
+        return res
+          .status(400)
+          .json({ message: "This Email is already in use !" });
+      }
+    }
+
+    const employee = await Employee.findById(_id);
+
+    if (!user || !employee) {
+      return res.status(404).json({ message: "Employee not found." });
+    }
+
+    // Update user details
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.phone = phone || user.phone;
+    user.position = position || user.position;
+    user.address = address || user.address;
+    user.emergency_contact = emergency_contact || user.emergency_contact;
+    user.date_of_birth = date_of_birth || user.date_of_birth;
+    user.gender = gender || user.gender;
+
+    // Update password if provided
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+
+    // Validate department if changed
+    let dept = null;
+    if (department && department.toLowerCase() !== "na") {
+      dept = await Department.findOne({ name: department.toLowerCase() });
+      if (!dept) {
+        return res.status(400).json({ message: "No such department exists." });
+      }
+    }
+
+    // Update employee fields
+    employee.department = dept?._id || employee.department;
+    employee.manager_id = manager_id || employee.manager_id;
+    employee.date_of_joining = date_of_joining || employee.date_of_joining;
+    employee.experience = experience || employee.experience;
+    employee.skills = skills || employee.skills;
+    employee.domain = domain || employee.domain;
+    employee.certifications = certifications || employee.certifications;
+    employee.projects = projects || employee.projects;
+    employee.salary = salary ? convertToSalaryObject(salary) : employee.salary;
+    employee.bonuses = bonuses || employee.bonuses;
+    employee.shift = shift || employee.shift;
+    employee.work_location = work_location || employee.work_location;
+    employee.status = status || employee.status;
+    employee.documents = documents || employee.documents;
+
+    await employee.save();
+
+    res.json({ message: "Employee updated successfully", user, employee });
+  } catch (err) {
+    console.error(err.message);
+    res
+      .status(500)
+      .json({ message: "Failed to update employee", error: err.message });
+  }
+};
+
+module.exports = { addEmployee, getAllEmployees, editEmployee };

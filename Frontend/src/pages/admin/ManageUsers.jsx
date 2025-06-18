@@ -248,7 +248,7 @@ const ManageUsers = () => {
                 <td className="px-2 py-3">{user._id}</td>
                 <td className="px-2 py-3 capitalize">{user.name}</td>
                 <td className="px-2 py-3 text-purple-600 uppercase">
-                  {user.role}
+                  {user.roles[0]}
                 </td>
                 <td className="px-2 py-3 capitalize">{user.position}</td>
                 <td className="px-2 py-3">{user.phone}</td>

@@ -51,7 +51,9 @@ const addUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({role:{$ne:"employee"}}).select("-password").lean();
+    const users = await User.find({ $nor: [{ roles: ["employee"] }] })
+      .select("-password")
+      .lean();
 
     res.status(200).json({ users });
   } catch (error) {
@@ -123,12 +125,10 @@ const removeUser = async (req, res) => {
       res.status(400).json({ message: "/{id} is required !" });
     }
     const user = await User.findOne({ _id: id });
-    if (user.role == "admin") {
-      return res
-        .status(400)
-        .json({
-          message: "Admin can't be removed , You can edit info only for admin!",
-        });
+    if (user.roles?.includes("admin")) {
+      return res.status(400).json({
+        message: "Admin can't be removed , You can edit info only for admin!",
+      });
     }
     await User.deleteOne({ _id: id });
     res.status(200).json({ message: "User Removed !" });
@@ -143,3 +143,4 @@ module.exports = {
   editUser,
   removeUser,
 };
+ 

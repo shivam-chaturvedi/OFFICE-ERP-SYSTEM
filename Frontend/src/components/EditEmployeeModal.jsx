@@ -100,17 +100,16 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
 
     return {
       ...employeeData,
-      user: {
-        name,
-        email,
-        phone,
-        password,
-        position,
-        date_of_birth,
-        gender,
-        address,
-        emergency_contact,
-      },
+
+      name,
+      email,
+      phone,
+      password,
+      position,
+      date_of_birth,
+      gender,
+      address,
+      emergency_contact,
     };
   };
 
@@ -401,7 +400,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
           </div>
           <div>
             <Label required>Salary</Label>
-            <SalaryInput setSalary={setSalary} salary={salary}/>
+            <SalaryInput setSalary={setSalary} salary={salary} />
           </div>
 
           <div>
