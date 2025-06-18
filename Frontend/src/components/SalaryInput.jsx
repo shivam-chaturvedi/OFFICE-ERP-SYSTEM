@@ -1,11 +1,16 @@
 import React, { useState } from "react";
 import { PlusCircle, Edit3, CheckCircle2, X } from "lucide-react";
 import Alert from "../components/Alert";
+import { useEffect } from "react";
 
-function SalaryInput({ salary, setSalary }) {
+function SalaryInput({ salary, setSalary}) {
   const [salaryComponents, setSalaryComponents] = useState(salary);
   const [editMode, setEditMode] = useState(true);
   const [alert, setAlert] = useState({});
+
+  useEffect(() => {
+    setSalaryComponents(salary);
+  }, [salary]);
 
   const handleComponentChange = (index, field, value) => {
     const updated = [...salaryComponents];
@@ -35,7 +40,7 @@ function SalaryInput({ salary, setSalary }) {
         salaryObj[component.type] = Number(component.amount);
       } else {
         setAlert({ type: "error", message: "Please Fill All Fields!" });
-        flag=false;
+        flag = false;
         return;
       }
     });
@@ -86,6 +91,7 @@ function SalaryInput({ salary, setSalary }) {
                   className="employee-form flex-1 px-3 py-2 border rounded"
                   required
                 />
+
                 {salaryComponents.length > 1 && (
                   <button
                     type="button"

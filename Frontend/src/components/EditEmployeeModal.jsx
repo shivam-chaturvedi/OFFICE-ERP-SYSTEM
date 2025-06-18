@@ -7,7 +7,7 @@ import SalaryInput from "./SalaryInput";
 function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
-  const [salary, setSalary] = useState([{type:"d",amount:3},{type:"d",amount:3}]);
+  const [salary, setSalary] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -64,7 +64,6 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
       });
       const salaryArr = [];
       for (const key in selectedEmployee.salary) {
-        console.log(key,selectedEmployee.salary[key])
         salaryArr.push({ type: key, amount: selectedEmployee.salary[key] });
       }
 
@@ -122,17 +121,14 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
       setLoader(true);
       const payload = preparePayload();
       payload.salary = salary;
-      const res = await fetch(
-        `${config.BACKEND_URL}/api/employees/edit`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch(`${config.BACKEND_URL}/api/employees/edit`, {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await res.json();
 
@@ -405,7 +401,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee }) {
           </div>
           <div>
             <Label required>Salary</Label>
-            <SalaryInput setSalary={setSalary} salary={salary} />
+            <SalaryInput setSalary={setSalary} salary={salary}/>
           </div>
 
           <div>
