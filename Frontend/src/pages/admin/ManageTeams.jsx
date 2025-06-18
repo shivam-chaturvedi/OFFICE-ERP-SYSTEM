@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   Plus, Search, Users, FolderOpen, Building, User,
-  MoreHorizontal, Eye, Edit
+  MoreHorizontal, Eye, Edit, X
 } from 'lucide-react';
 import CreateTeamModal from '../../components/CreateTeamModal';
 
@@ -41,21 +41,23 @@ const TeamManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('All Departments');
   const [statusFilter, setStatusFilter] = useState('All Status');
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const handleTeamCreated = useCallback((newTeam) => {
-    const teamId = `TM${teams.length + 1}`.padStart(5, '0');
-    setTeams((prev) => [
-      ...prev,
-      {
-        id: teamId,
-        name: newTeam.name,
-        department: newTeam.department,
-        teamLead: newTeam.lead,
-        members: newTeam.members.length,
-        activeProject: 'No Active Project',
-        hasActiveProject: false
-      }
-    ]);
+    const newId = `TM${(teams.length + 1).toString().padStart(3, '0')}`;
+    const teamData = {
+      id: newId,
+      name: newTeam.name,
+      department: newTeam.department,
+      teamLead: newTeam.teamLead,
+      members: newTeam.members,
+      activeProject: newTeam.activeProject || 'No Active Project',
+      hasActiveProject: !!newTeam.activeProject
+    };
+    setTeams(prev => [...prev, teamData]);
+    setShowCreateModal(false);
   }, [teams]);
 
   const filteredTeams = teams.filter((team) => {
@@ -73,6 +75,20 @@ const TeamManagement = () => {
 
     return matchesSearch && matchesDept && matchesStatus;
   });
+
+  const handleTeamUpdate = (updatedTeam) => {
+    setTeams((prev) =>
+      prev.map((team) => (team.id === updatedTeam.id ? updatedTeam : team))
+    );
+    setShowEditModal(false);
+  };
+
+  const updateSelectedTeamField = (field, value) => {
+    setSelectedTeam(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,10 +112,30 @@ const TeamManagement = () => {
       {/* Stats */}
       <div className="px-6 py-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <StatCard icon={<Users className="text-blue-600" size={20} />} label="Total Teams" value={teams.length} bg="blue" />
-          <StatCard icon={<FolderOpen className="text-green-600" size={20} />} label="Active Projects" value={teams.filter(t => t.hasActiveProject).length} bg="green" />
-          <StatCard icon={<Building className="text-purple-600" size={20} />} label="Departments" value={new Set(teams.map(t => t.department)).size} bg="purple" />
-          <StatCard icon={<User className="text-orange-600" size={20} />} label="Total Members" value={teams.reduce((acc, t) => acc + t.members, 0)} bg="orange" />
+          <StatCard
+            icon={<Users className="text-blue-600" size={20} />}
+            label="Total Teams"
+            value={teams.length}
+            bgColor="bg-blue-100"
+          />
+          <StatCard
+            icon={<FolderOpen className="text-green-600" size={20} />}
+            label="Active Projects"
+            value={teams.filter(t => t.hasActiveProject).length}
+            bgColor="bg-green-100"
+          />
+          <StatCard
+            icon={<Building className="text-purple-600" size={20} />}
+            label="Departments"
+            value={new Set(teams.map(t => t.department)).size}
+            bgColor="bg-purple-100"
+          />
+          <StatCard
+            icon={<User className="text-orange-600" size={20} />}
+            label="Total Members"
+            value={teams.reduce((acc, t) => acc + t.members, 0)}
+            bgColor="bg-orange-100"
+          />
         </div>
 
         {/* Filters */}
@@ -145,7 +181,10 @@ const TeamManagement = () => {
         {/* Teams Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTeams.map((team) => (
-            <div key={team.id} className="bg-white rounded-lg border border-gray-200 p-6">
+            <div
+              key={team.id}
+              className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+            >
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">{team.name}</h3>
                 <button className="text-gray-400 hover:text-gray-600">
@@ -175,15 +214,21 @@ const TeamManagement = () => {
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => alert(`Viewing team: ${team.name}`)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  onClick={() => {
+                    setSelectedTeam(team);
+                    setShowViewModal(true);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50"
                 >
                   <Eye size={16} />
                   View
                 </button>
                 <button
-                  onClick={() => alert(`Editing team: ${team.name}`)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  onClick={() => {
+                    setSelectedTeam(team);
+                    setShowEditModal(true);
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-yellow-500 text-yellow-600 rounded hover:bg-yellow-50"
                 >
                   <Edit size={16} />
                   Edit
@@ -194,20 +239,124 @@ const TeamManagement = () => {
         </div>
       </div>
 
-      {/* Modal Integration */}
-      <CreateTeamModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onTeamCreated={handleTeamCreated}
-      />
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+          <CreateTeamModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={handleTeamCreated}
+          />
+        </div>
+      )}
+
+      {/* View Modal */}
+      {showViewModal && selectedTeam && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white w-full max-w-md rounded-lg shadow p-6 relative">
+            <button onClick={() => setShowViewModal(false)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+              <X size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Team Details</h2>
+            <div className="space-y-2">
+              <p><strong>ID:</strong> {selectedTeam.id}</p>
+              <p><strong>Name:</strong> {selectedTeam.name}</p>
+              <p><strong>Department:</strong> {selectedTeam.department}</p>
+              <p><strong>Team Lead:</strong> {selectedTeam.teamLead}</p>
+              <p><strong>Members:</strong> {selectedTeam.members}</p>
+              <p><strong>Active Project:</strong> {selectedTeam.hasActiveProject ? selectedTeam.activeProject : 'No Active Project'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && selectedTeam && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white w-full max-w-md rounded-lg shadow p-6 relative">
+            <button onClick={() => setShowEditModal(false)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+              <X size={20} />
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Edit Team</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleTeamUpdate(selectedTeam);
+              }}
+              className="space-y-4"
+            >
+              <input
+  id="edit-name"
+  name="name"
+  type="text"
+  value={selectedTeam.name}
+  onChange={(e) => updateSelectedTeamField('name', e.target.value)}
+  className="w-full border px-3 py-2 rounded"
+  required
+/>
+
+<input
+  id="edit-department"
+  name="department"
+  type="text"
+  value={selectedTeam.department}
+  onChange={(e) => updateSelectedTeamField('department', e.target.value)}
+  className="w-full border px-3 py-2 rounded"
+  required
+/>
+
+<input
+  id="edit-team-lead"
+  name="teamLead"
+  type="text"
+  value={selectedTeam.teamLead}
+  onChange={(e) => updateSelectedTeamField('teamLead', e.target.value)}
+  className="w-full border px-3 py-2 rounded"
+  required
+/>
+
+<input
+  id="edit-members"
+  name="members"
+  type="number"
+  value={selectedTeam.members}
+  onChange={(e) => updateSelectedTeamField('members', Number(e.target.value))}
+  className="w-full border px-3 py-2 rounded"
+  required
+/>
+
+<input
+  id="edit-active-project"
+  name="activeProject"
+  type="text"
+  value={selectedTeam.activeProject}
+  onChange={(e) => updateSelectedTeamField('activeProject', e.target.value)}
+  className="w-full border px-3 py-2 rounded"
+/>
+
+             <label htmlFor="hasActiveProject" className="flex items-center gap-2">
+  <input
+    id="hasActiveProject"
+    name="hasActiveProject"
+    type="checkbox"
+    checked={selectedTeam.hasActiveProject}
+    onChange={(e) => updateSelectedTeamField('hasActiveProject', e.target.checked)}
+  />
+  Has Active Project
+</label>
+
+              <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">Save Changes</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-const StatCard = ({ icon, label, value, bg }) => (
-  <div className="bg-white p-6 rounded-lg border border-gray-200">
+const StatCard = ({ icon, label, value, bgColor }) => (
+  <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
     <div className="flex items-center gap-3">
-      <div className={`p-2 bg-${bg}-100 rounded-lg`}>
+      <div className={`p-2 ${bgColor} rounded-lg`}>
         {icon}
       </div>
       <div>
