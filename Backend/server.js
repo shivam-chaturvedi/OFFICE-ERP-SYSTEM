@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const employeeRoutes = require("./routes/employee.routes");
+const deptRoutes=require('./routes/department.routes')
 
 const authMiddleware = require("./middlewares/auth.middleware");
 
@@ -46,6 +47,7 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/employees",employeeRoutes)
+app.use('/api/departments',deptRoutes)
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
