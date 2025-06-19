@@ -41,6 +41,8 @@ import ManageDepartments from "./pages/admin/ManageDepartments";
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(true);
+
 
     useEffect(() => {
       setUser({ name: "TestUser", role: "admin" });
@@ -85,16 +87,27 @@ function App() {
 
   if (loading) return <Loader />;
 
-  const ProtectedRoute = ({ children, role }) => {
-    if (!user) return <Navigate to="/login" />;
-    if (role && user.role !== role) return <Navigate to="/" />;
-    return (
-      <div className="flex">
-        <Sidebar user={user} setUser={setUser} />
-        <div className="flex-1">{children}</div>
+ const ProtectedRoute = ({ children, role }) => {
+  if (!user) return <Navigate to="/login" />;
+  if (role && user.role !== role) return <Navigate to="/" />;
+  return (
+    <div className="flex">
+      <Sidebar
+        user={user}
+        setUser={setUser}
+        expanded={expanded}
+        setExpanded={setExpanded}
+      />
+      <div
+        className={`transition-all duration-300 w-full ${
+          expanded ? "ml-64" : "ml-16"
+        }`}
+      >
+        {children}
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   return (
     <Router>
