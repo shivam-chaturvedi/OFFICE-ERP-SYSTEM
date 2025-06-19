@@ -356,6 +356,7 @@ const ManageUsers = () => {
         <AddUserModal
           onClose={() => setShowModal(false)}
           onSuccess={fetchUsers}
+           employees={users}
         />
       )}
 
