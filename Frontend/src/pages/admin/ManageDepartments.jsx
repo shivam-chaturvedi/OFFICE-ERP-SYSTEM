@@ -8,28 +8,40 @@ import {
   Users,
   TrendingUp,
   TrendingDown,
+  Trash2,
+  Edit2,
 } from "lucide-react";
 import AddDepartmentModal from "../../components/AddDepartmentModal";
 import config from "../../config";
+import Loader from "../../components/Loader";
+import Alert from "../../components/Alert";
 
 const ManageDepartments = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Status");
-  const [showModal, setShowModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [loader, setLoader] = useState(false);
-  const [departments, setDepartments] = useState([
-    {
-      id: "DEPT001",
-      name: "Human Resources",
-      description:
-        "Manages employee relations, recruitment, and organizational development",
-      employees: 12,
-      head: "Sarah Johnson",
-      created: "1/15/2023",
-      status: "Active",
-      projects: 8,
-    },
-  ]);
+  const [departments, setDepartments] = useState([]);
+  const [alert, setAlert] = useState({});
+  const [employees, setEmployees] = useState([]);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/employees`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setEmployees(data.employees || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
+    }
+  };
 
   const fetchDepartments = async () => {
     try {
@@ -42,7 +54,6 @@ const ManageDepartments = () => {
       });
       const data = await res.json();
       setDepartments(data.departments || []);
-      console.log(data)
     } catch (err) {
       console.error("Error fetching Departments", err);
     } finally {
@@ -52,46 +63,132 @@ const ManageDepartments = () => {
 
   useEffect(() => {
     fetchDepartments();
+    fetchEmployees();
   }, []);
 
-  const toggleDepartmentStatus = (id) => {
-    setDepartments((prev) =>
-      prev.map((dept) =>
-        dept.id === id
-          ? {
-              ...dept,
-              status: dept.status === "Active" ? "Inactive" : "Active",
-            }
-          : dept
-      )
+  const handleEditClick = (dept) => {};
+  const handleDeleteClick = async (dept) => {
+    let dept_id = dept._id;
+    const confirmed = confirm(
+      "Are you Sure You want to remove department with id " + dept_id + " ?"
     );
+    if (!confirmed) {
+      return;
+    }
+    if (dept.status) {
+      setAlert({
+        type: "error",
+        message:
+          "You Can't Delete An Active Department, First Mark it as inactive ",
+      });
+      return;
+    }
+    try {
+      setLoader(true);
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/departments/delete/${dept_id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setAlert({
+          type: "success",
+          message: data.message,
+        });
+        await fetchDepartments();
+      } else {
+        setAlert({
+          type: "error",
+          message: data.message,
+        });
+      }
+    } catch (err) {
+      setAlert({
+        type: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoader(false);
+    }
   };
 
-  const handleAddDepartment = (newDept) => {
-    const newId = `DEPT${String(departments.length + 1).padStart(3, "0")}`;
-    const created = new Date().toLocaleDateString();
-    setDepartments((prev) => [
-      ...prev,
-      { id: newId, created, employees: 0, projects: 0, ...newDept },
-    ]);
+  const toggleDepartmentStatus = async (dept) => {
+    if (dept.status) {
+      const confirmed = confirm(
+        "Are you Sure You want to mark " +
+          dept.name +
+          " department Inactive " +
+          " ?"
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+    const id = dept._id;
+    try {
+      setLoader(true);
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/departments/toggle/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setDepartments((prev) =>
+          prev.map((dept) =>
+            dept._id === id
+              ? {
+                  ...dept,
+                  status: !dept.status,
+                }
+              : dept
+          )
+        );
+
+        setAlert({
+          type: "success",
+          message: dept.name + " Department " + data.message,
+        });
+      } else {
+        setAlert({
+          type: "error",
+          message: data.message,
+        });
+      }
+    } catch (err) {
+      setAlert({
+        type: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoader(false);
+    }
   };
 
   const filteredDepartments = departments.filter((dept) => {
     const matchesSearch =
       dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dept.head?.user?.name.toLowerCase().includes(searchTerm.toLowerCase());
+      dept.head?.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dept._id.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus =
-      statusFilter === "All Status" || dept.status === statusFilter;
+      statusFilter === "All Status" ||
+      (statusFilter === "Inactive" ? !dept.status : dept.status);
     return matchesSearch && matchesStatus;
   });
 
   const totalDepartments = departments.length;
-  const activeDepartments = departments.filter(
-    (d) => d.status === "Active"
-  ).length;
-  const inactiveDepartments = departments.filter(
-    (d) => d.status === "Inactive"
-  ).length;
+  const activeDepartments = departments.filter((d) => d.status).length;
+  const inactiveDepartments = departments.filter((d) => !d.status).length;
   const totalEmployees = departments.reduce((sum, d) => sum + d.employees, 0);
 
   const StatCard = ({ title, value, icon: Icon, trend, color = "blue" }) => (
@@ -145,6 +242,8 @@ const ManageDepartments = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 ">
+      {loader && <Loader />}
+      <Alert alert={alert} setAlert={setAlert} />
       <div className="w-full">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -157,8 +256,8 @@ const ManageDepartments = () => {
             </p>
           </div>
           <button
-            className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
-            onClick={() => setShowModal(true)}
+            className="cursor-pointer bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+            onClick={() => setShowAddModal(true)}
           >
             <Plus className="w-4 h-4" />
             Add Department
@@ -254,11 +353,11 @@ const ManageDepartments = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredDepartments.map((dept) => (
-                  <tr key={dept._id} className="hover:bg-gray-50">
+                {filteredDepartments.map((dept, idx) => (
+                  <tr key={dept._id + idx} className="hover:bg-gray-50">
                     <td className="py-4 px-6">
                       <div>
-                        <div className="font-medium text-gray-900">
+                        <div className="uppercase text-xl font-bold text-purple-500">
                           {dept.name}
                         </div>
                         <div className="text-sm text-gray-500">
@@ -266,64 +365,71 @@ const ManageDepartments = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{dept.id}</td>
+                    <td className="py-4 px-6 text-gray-900 uppercase font-semibold">
+                      {dept._id}
+                    </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-900">{dept.employees?.length}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                            dept.head?.user?.name === "Not assigned"
-                              ? "bg-gray-200 text-gray-500"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {dept.head?.user?.name === "Not assigned"
-                            ? "?"
-                            : dept.head?.user?.name?.charAt(0)}
-                        </div>
-                        <span
-                          className={
-                            dept.head?.user?.name === "Not assigned"
-                              ? "text-gray-500"
-                              : "text-gray-900"
-                          }
-                        >
-                          {dept.head?.user?.name}
+                        <span className="text-gray-900">
+                          {dept.employees?.length}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-900">{dept.created}</td>
+                    <td className="py-4 px-6">
+                      <div className="capitalize font-extralight font-sans flex items-center gap-2">
+                        <div
+                          className={`uppercase w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                            dept.head?.user?.name
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-200 text-gray-500"
+                          }`}
+                        >
+                          {dept.head?.user?.name
+                            ? dept.head?.user?.name?.charAt(0)
+                            : "?"}
+                        </div>
+                        <span
+                          className={
+                            dept.head?.user?.name
+                              ? "text-gray-900"
+                              : "text-gray-500 bg-amber-50 rounded-xl w-full p-1"
+                          }
+                        >
+                          {dept.head?.user?.name || "Not assigned"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-gray-900">
+                      {new Date(dept?.createdAt).toLocaleDateString()}
+                    </td>
                     <td className="py-4 px-6">
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
                           className="sr-only peer"
-                          checked={dept.status === "Active"}
-                          onChange={() => toggleDepartmentStatus(dept.id)}
+                          checked={dept.status}
+                          onChange={() => toggleDepartmentStatus(dept)}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                       </label>
-                      <span
-                        className={`ml-2 text-sm font-medium ${
-                          dept.status === "Active"
-                            ? "text-green-600"
-                            : "text-gray-500"
-                        }`}
-                      >
-                        {dept.status}
-                      </span>
                     </td>
                     <td className="py-4 px-6 text-gray-900 font-medium">
-                      {dept.projects}
+                      {dept.projects?.length}
                     </td>
-                    <td className="py-4 px-6">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <MoreHorizontal className="w-5 h-5" />
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={() => handleDeleteClick(dept)}
+                        className="cursor-pointer flex items-center  w-full text-left py-2 text-sm  text-gray-700 hover:bg-gray-100"
+                      >
+                        <Trash2 size={20} className="text-red-700" />
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => handleEditClick(dept)}
+                        className="cursor-pointer flex items-center w-full text-left py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        <Edit2 size={20} className="mr-1 text-green-800" /> Edit
                       </button>
                     </td>
                   </tr>
@@ -343,9 +449,12 @@ const ManageDepartments = () => {
 
         {/* Modal */}
         <AddDepartmentModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          onCreate={handleAddDepartment}
+          isOpen={showAddModal}
+          employees={employees}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            fetchDepartments();
+          }}
         />
       </div>
     </div>

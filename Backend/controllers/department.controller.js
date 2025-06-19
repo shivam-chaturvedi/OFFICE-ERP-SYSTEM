@@ -5,12 +5,12 @@ const Project = require("../models/project.model");
 const getAllDepartments = async (req, res) => {
   try {
     const departments = await Department.find()
-         .populate({
+      .populate({
         path: "head",
-        select: "user", 
+        select: "user",
         populate: {
           path: "user",
-          select: "name",  
+          select: "name",
         },
       })
       .populate({
@@ -21,8 +21,7 @@ const getAllDepartments = async (req, res) => {
           select: "name",
         },
       })
-      .populate("projects"); 
-
+      .populate("projects");
 
     res.status(200).json({ departments });
   } catch (err) {
@@ -39,6 +38,7 @@ const addDepartment = async (req, res) => {
       employees = [],
       head = null,
       projects = [],
+      status,
     } = req.body;
 
     if (head) {
@@ -69,10 +69,11 @@ const addDepartment = async (req, res) => {
     }
 
     const dept = await Department.create({
-      name,
+      name: name.toLowerCase(),
       description,
       employees,
-      head,
+      head: head.length > 0 ? head : null,
+      status,
       projects,
     });
 
@@ -82,11 +83,58 @@ const addDepartment = async (req, res) => {
     });
   } catch (err) {
     console.error("Error creating department:", err);
+    if ((err.code = 11000)) {
+      res
+        .status(400)
+        .json({ message: "Department With Given Name Already Exists" });
+    } else {
+      res.status(500).json({ message: err.message });
+    }
+  }
+};
+
+const deleteDepartment = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "Id is required for deletion" });
+    }
+    await Department.deleteOne({ _id: id });
+
+    res.status(200).json({ message: "Department Successfully Deleted" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+const toggleStatus = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ message: "Id is required for status updation" });
+    }
+
+    const department = await Department.findById(id);
+    if (!department) {
+      return res.status(404).json({ message: "Department not found" });
+    }
+
+    const updatedDept = await Department.updateOne(
+      { _id: id },
+      { $set: { status: !department.status } }
+    );
+
+    res.status(200).json({ message: "Status updated successfully", status:updatedDept.status });
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
+
 module.exports = {
   getAllDepartments,
   addDepartment,
+  deleteDepartment,
+  toggleStatus,
 };
