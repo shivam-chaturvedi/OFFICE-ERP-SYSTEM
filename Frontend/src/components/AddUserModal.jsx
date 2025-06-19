@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import config from "../config";
 
-const AddUserModal = ({ onClose, onSuccess }) => {
+const AddUserModal = ({ onClose, onSuccess,employees }) => {
   const [formData, setFormData] = useState({
     name: "",
     role: "employee",
