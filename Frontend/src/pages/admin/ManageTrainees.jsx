@@ -1,271 +1,461 @@
-import React, { useState } from "react";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import React, { useState } from 'react';
+import { Search, Users, Activity, CheckCircle, Clock, MoreHorizontal, Plus, X, Calendar, ChevronDown } from 'lucide-react';
 
-const ManageTrainee = () => {
-  const [trainees, setTrainees] = useState([
-    {
-      id: 1,
-      name: "Amit Sharma",
-      email: "amit.sharma@example.com",
-      phone: "9876543210",
-      department: "Development",
-      joiningDate: "2024-04-15",
-    },
-    {
-      id: 2,
-      name: "Neha Verma",
-      email: "neha.verma@example.com",
-      phone: "9123456789",
-      department: "HR",
-      joiningDate: "2024-03-10",
-    },
-  ]);
+const ManageTrainees = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Statuses');
+  const [departmentFilter, setDepartmentFilter] = useState('All Departments');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    department: '',
+    position: '',
+    startDate: '',
+    endDate: '',
+    supervisor: '',
+    phone: ''
+  });
 
-  const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingTrainee, setEditingTrainee] = useState(null);
-  const [deletePopupId, setDeletePopupId] = useState(null);
+  const trainees = [
+    {
+      id: 1,
+      name: 'Alice Johnson',
+      email: 'alice.johnson@company.com',
+      department: 'Engineering',
+      position: 'Software Developer Trainee',
+      status: 'Active',
+      progress: 75,
+      supervisor: 'John Smith'
+    },
+    {
+      id: 2,
+      name: 'Bob Wilson',
+      email: 'bob.wilson@company.com',
+      department: 'Marketing',
+      position: 'Digital Marketing Trainee',
+      status: 'Active',
+      progress: 60,
+      supervisor: 'Sarah Davis'
+    },
+    {
+      id: 3,
+      name: 'Carol Brown',
+      email: 'carol.brown@company.com',
+      department: 'HR',
+      position: 'HR Assistant Trainee',
+      status: 'Completed',
+      progress: 100,
+      supervisor: 'Mike Johnson'
+    }
+  ];
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    department: "",
-    joiningDate: "",
-  });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  const handleAddClick = () => {
-    setShowForm(true);
-    setEditingTrainee(null);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      department: "",
-      joiningDate: "",
-    });
-  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    setShowAddModal(false);
+    setFormData({
+      fullName: '',
+      email: '',
+      department: '',
+      position: '',
+      startDate: '',
+      endDate: '',
+      supervisor: '',
+      phone: ''
+    });
+  };
 
-  const handleEditClick = (trainee) => {
-    setEditingTrainee(trainee);
-    setFormData(trainee);
-    setShowForm(true);
-  };
+  const handleCancel = () => {
+    setShowAddModal(false);
+    setFormData({
+      fullName: '',
+      email: '',
+      department: '',
+      position: '',
+      startDate: '',
+      endDate: '',
+      supervisor: '',
+      phone: ''
+    });
+  };
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (editingTrainee) {
-      const updated = trainees.map((t) =>
-        t.id === editingTrainee.id ? formData : t
-      );
-      setTrainees(updated);
-    } else {
-      const newTrainee = { ...formData, id: Date.now() };
-      setTrainees([...trainees, newTrainee]);
-    }
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Active':
+        return 'bg-green-100 text-green-800';
+      case 'Completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'On Hold':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-    setShowForm(false);
-    setFormData({
-      name: "",
-      email: "",
-      phone: "",
-      department: "",
-      joiningDate: "",
-    });
-    setEditingTrainee(null);
-  };
+  const getProgressColor = (progress) => {
+    if (progress === 100) return 'bg-blue-500';
+    if (progress >= 70) return 'bg-green-500';
+    if (progress >= 40) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
 
-  const filteredTrainees = trainees.filter((t) =>
-    t.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTrainees = trainees.filter(trainee => {
+    const matchesSearch = trainee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         trainee.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All Statuses' || trainee.status === statusFilter;
+    const matchesDepartment = departmentFilter === 'All Departments' || trainee.department === departmentFilter;
+    
+    return matchesSearch && matchesStatus && matchesDepartment;
+  });
 
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold text-black-600">Manage Trainees</h2>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded-md w-64 focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            onClick={handleAddClick}
-            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
-          >
-            <Plus size={18} />
-            Add New Trainee
-          </button>
-        </div>
-      </div>
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
+      <div className="flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Trainees</h1>
+          <p className="text-gray-600">Track and manage trainee progress and information</p>
+        </div>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="bg-black text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800 transition-colors"
+        >
+          <Plus size={16} />
+          Add Trainee
+        </button>
+      </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto border-collapse text-sm relative">
-          <thead className="bg-blue-100 text-gray-700">
-            <tr>
-              <th className="p-3 border">Name</th>
-              <th className="p-3 border">Email</th>
-              <th className="p-3 border">Phone</th>
-              <th className="p-3 border">Department</th>
-              <th className="p-3 border">Joining Date</th>
-              <th className="p-3 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTrainees.length > 0 ? (
-              filteredTrainees.map((trainee) => (
-                <tr key={trainee.id} className="hover:bg-gray-100 transition relative">
-                  <td className="p-3 border">{trainee.name}</td>
-                  <td className="p-3 border">{trainee.email}</td>
-                  <td className="p-3 border">{trainee.phone}</td>
-                  <td className="p-3 border">{trainee.department}</td>
-                  <td className="p-3 border">{trainee.joiningDate}</td>
-                  <td className="p-3 border">
-                    <div className="relative flex justify-center gap-3">
-                      <button
-                        onClick={() => handleEditClick(trainee)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setDeletePopupId(
-                            deletePopupId === trainee.id ? null : trainee.id
-                          )
-                        }
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+      {/* Dashboard Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-600 text-sm font-medium">Total Trainees</h3>
+            <Users className="text-gray-400" size={20} />
+          </div>
+          <p className="text-3xl font-bold text-gray-900">4</p>
+        </div>
 
-                      {/* Inline Delete Popup */}
-                     {deletePopupId === trainee.id && (
-  <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-white border border-gray-300 shadow-lg rounded-lg z-50 w-96 max-w-full p-5">
-    <p className="text-gray-800 font-semibold mb-4 text-center">
-      Are you sure you want to delete this trainee?
-    </p>
-    <div className="flex justify-center gap-4">
-      <button
-        onClick={() => {
-          setTrainees(trainees.filter((t) => t.id !== trainee.id));
-          setDeletePopupId(null);
-        }}
-        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-      >
-        Yes
-      </button>
-      <button
-        onClick={() => setDeletePopupId(null)}
-        className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-600 text-sm font-medium">Active</h3>
+            <Activity className="text-gray-400" size={20} />
+          </div>
+          <p className="text-3xl font-bold text-green-600">2</p>
+        </div>
 
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-600 text-sm font-medium">Completed</h3>
+            <CheckCircle className="text-gray-400" size={20} />
+          </div>
+          <p className="text-3xl font-bold text-blue-600">1</p>
+        </div>
 
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-gray-600 text-sm font-medium">On Hold</h3>
+            <Clock className="text-gray-400" size={20} />
+          </div>
+          <p className="text-3xl font-bold text-orange-600">1</p>
+        </div>
+      </div>
 
-                     
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center py-4 text-gray-500">
-                  No trainees found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Trainee List Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div className="p-6 border-b border-gray-100">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Trainee List</h2>
+          <p className="text-gray-600 mb-6">Manage and track all trainees in your organization</p>
+          
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search trainees..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 w-full border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option>All Statuses</option>
+              <option>Active</option>
+              <option>Completed</option>
+              <option>On Hold</option>
+            </select>
+            
+            <select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option>All Departments</option>
+              <option>Engineering</option>
+              <option>Marketing</option>
+              <option>HR</option>
+            </select>
+          </div>
+        </div>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <form
-          onSubmit={handleFormSubmit}
-          className="bg-white p-6 mt-8 rounded-lg shadow-md space-y-4 max-w-xl mx-auto"
-        >
-          <h3 className="text-xl font-semibold text-gray-700">
-            {editingTrainee ? "Edit Trainee" : "Add New Trainee"}
-          </h3>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Full Name"
-            className="w-full p-2 border rounded-md"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            placeholder="Email"
-            className="w-full p-2 border rounded-md"
-            required
-          />
-          <input
-            type="tel"
-            name="phone"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            placeholder="Phone"
-            className="w-full p-2 border rounded-md"
-            required
-          />
-          <input
-            type="text"
-            name="department"
-            value={formData.department}
-            onChange={(e) =>
-              setFormData({ ...formData, department: e.target.value })
-            }
-            placeholder="Department"
-            className="w-full p-2 border rounded-md"
-            required
-          />
-          <input
-            type="date"
-            name="joiningDate"
-            value={formData.joiningDate}
-            onChange={(e) =>
-              setFormData({ ...formData, joiningDate: e.target.value })
-            }
-            className="w-full p-2 border rounded-md"
-            required
-          />
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Trainee</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Department</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Position</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Status</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Progress</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Supervisor</th>
+                <th className="text-left py-3 px-6 text-sm font-medium text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredTrainees.map((trainee) => (
+                <tr key={trainee.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">
+                          {trainee.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{trainee.name}</p>
+                        <p className="text-sm text-gray-500">{trainee.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-gray-900">{trainee.department}</td>
+                  <td className="py-4 px-6 text-gray-900">{trainee.position}</td>
+                  <td className="py-4 px-6">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trainee.status)}`}>
+                      {trainee.status}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`h-2 rounded-full ${getProgressColor(trainee.progress)}`}
+                          style={{ width: `${trainee.progress}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm text-gray-600 min-w-[40px]">{trainee.progress}%</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-gray-900">{trainee.supervisor}</td>
+                  <td className="py-4 px-6">
+                    <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <MoreHorizontal size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                setShowForm(false);
-                setEditingTrainee(null);
-              }}
-              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              {editingTrainee ? "Update" : "Add"}
-            </button>
-          </div>
-        </form>
-      )}
-    </div>
-  );
+      {/* Add Trainee Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/10 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Add New Trainee</h2>
+                  <p className="text-gray-600 mt-1">Enter the details for the new trainee.</p>
+                </div>
+                <button
+                  onClick={handleCancel}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  placeholder="Enter full name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Enter email address"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Department */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Department
+                </label>
+                <div className="relative">
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                    required
+                  >
+                    <option value="">Select department</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="HR">HR</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Operations">Operations</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                </div>
+              </div>
+
+              {/* Position */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Position
+                </label>
+                <input
+                  type="text"
+                  name="position"
+                  value={formData.position}
+                  onChange={handleInputChange}
+                  placeholder="Enter position title"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Start Date and End Date */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Start Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    End Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      required
+                    />
+                    <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Supervisor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Supervisor
+                </label>
+                <input
+                  type="text"
+                  name="supervisor"
+                  value={formData.supervisor}
+                  onChange={handleInputChange}
+                  placeholder="Enter supervisor name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="Enter phone number"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+
+              {/* Form Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="px-6 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
+                >
+                  Add Trainee
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default ManageTrainee;
+export default ManageTrainees;

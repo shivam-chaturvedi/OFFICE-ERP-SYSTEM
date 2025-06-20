@@ -18,13 +18,14 @@ const ManageTasks = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [priorityFilter, setPriorityFilter] = useState('All Priority');
-const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [tasks, setTasks] = useState([]); 
 
   const handleCreateTask = (task) => {
-    setTasks((prev) => [...prev, task]); // add task to state
-    setIsModalOpen(false); // close modal
+    setTasks((prev) => [...prev, task]);
+    setIsModalOpen(false);
   };
+
   const allTasks = [
     {
       id: 1,
@@ -84,6 +85,74 @@ const [isModalOpen, setIsModalOpen] = useState(false);
 
     setFilteredTasks(filtered);
   }, [searchQuery, statusFilter, priorityFilter]);
+
+  // Export functionality
+  const exportToCSV = () => {
+    const tasksToExport = selectedTasks.length > 0 
+      ? filteredTasks.filter(task => selectedTasks.includes(task.id))
+      : filteredTasks;
+
+    if (tasksToExport.length === 0) {
+      alert('No tasks to export!');
+      return;
+    }
+
+    // Create CSV headers
+    const headers = [
+      'ID',
+      'Title',
+      'Description', 
+      'Date',
+      'Comments',
+      'Attachments',
+      'Subtasks',
+      'Progress (%)',
+      'Status',
+      'Priority',
+      'Categories'
+    ];
+
+    // Convert tasks to CSV format
+    const csvContent = [
+      headers.join(','),
+      ...tasksToExport.map(task => {
+        const status = task.tags.find(tag => ['todo', 'in progress', 'review', 'completed'].includes(tag)) || '';
+        const priority = task.tags.find(tag => ['high', 'medium', 'low'].includes(tag)) || '';
+        const categories = task.tags.filter(tag => !['todo', 'in progress', 'review', 'completed', 'high', 'medium', 'low'].includes(tag)).join(';');
+        
+        return [
+          task.id,
+          `"${task.title}"`,
+          `"${task.description}"`,
+          task.date,
+          task.comments,
+          task.attachments,
+          task.subtasks,
+          task.progress,
+          status,
+          priority,
+          `"${categories}"`
+        ].join(',');
+      })
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    const timestamp = new Date().toISOString().split('T')[0];
+    const fileName = selectedTasks.length > 0 
+      ? `selected-tasks-${timestamp}.csv`
+      : `all-tasks-${timestamp}.csv`;
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const stats = [
     { title: 'Total Tasks', value: '2,847', change: '+12% from last month', changeType: 'positive' },
@@ -173,9 +242,13 @@ const [isModalOpen, setIsModalOpen] = useState(false);
           <p className="text-gray-600">Manage and track tasks across your organization</p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button 
+            onClick={exportToCSV}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            title={selectedTasks.length > 0 ? `Export ${selectedTasks.length} selected tasks` : `Export all ${filteredTasks.length} tasks`}
+          >
             <Download className="w-4 h-4" />
-            Export
+            Export {selectedTasks.length > 0 && `(${selectedTasks.length})`}
           </button>
           
           <button onClick={()=>setIsModalOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800">
@@ -184,7 +257,8 @@ const [isModalOpen, setIsModalOpen] = useState(false);
           </button>
         </div>
       </div>
-       {isModalOpen && (
+
+      {isModalOpen && (
         <TaskCreationForm
           onClose={() => setIsModalOpen(false)}
           onCreate={handleCreateTask}
