@@ -1,92 +1,73 @@
-import React, { useState } from 'react';
-import { X, Search, Clock, User, Building, ChevronDown } from 'lucide-react';
+import React, { useState } from "react";
+import { X, Search, Clock, User, Building, ChevronDown } from "lucide-react";
 
-const CreateTeamModal = ({ onClose, onCreate }) => {
+const CreateTeamModal = ({ onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [teamData, setTeamData] = useState({
-    name: '',
-    description: '',
-    department: '',
-    teamLead: ''
+    name: "",
+    description: "",
+    department: "",
+    teamLead: "",
   });
+  const [loader, setLoader] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
-  // Sample employee data
-  const employees = [
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@company.com',
-      experience: '5 years',
-      role: 'Frontend Development',
-      department: 'Engineering'
-    },
-    {
-      id: 2,
-      name: 'Sarah Johnson',
-      email: 'sarah.johnson@company.com',
-      experience: '7 years',
-      role: 'Data Science',
-      department: 'Analytics'
-    },
-    {
-      id: 3,
-      name: 'Mike Wilson',
-      email: 'mike.wilson@company.com',
-      experience: '8 years',
-      role: 'DevOps',
-      department: 'Engineering'
-    },
-    {
-      id: 4,
-      name: 'Emily Davis',
-      email: 'emily.davis@company.com',
-      experience: '6 years',
-      role: 'UI/UX Design',
-      department: 'Design'
-    },
-    {
-      id: 5,
-      name: 'Alex Chen',
-      email: 'alex.chen@company.com',
-      experience: '4 years',
-      role: 'Backend Development',
-      department: 'Engineering'
-    },
-    {
-      id: 6,
-      name: 'Lisa Wang',
-      email: 'lisa.wang@company.com',
-      experience: '9 years',
-      role: 'Product Management',
-      department: 'Product'
+  const fetchEmployees = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/employees`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setEmployees(data.employees || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
     }
-  ];
+  };
 
-  const departments = [
-    'Engineering',
-    'Design',
-    'Marketing',
-    'HR',
-    'Analytics',
-    'Quality Assurance',
-    'Product',
-    'Sales'
-  ];
+  const fetchDepartments = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/departments/names`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setDepartments(data.names || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
+    }
+  };
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchTerm.toLowerCase())
+  React.useEffect(() => {
+    fetchEmployees();
+    fetchDepartments();
+  }, []);
+
+  const filteredEmployees = employees.filter(
+    (emp) =>
+      emp.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.user?.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.department?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleMemberToggle = (employee) => {
-    setSelectedMembers(prev => {
-      const isSelected = prev.some(member => member.id === employee.id);
+    setSelectedMembers((prev) => {
+      const isSelected = prev.some((member) => member.id === employee.id);
       if (isSelected) {
-        return prev.filter(member => member.id !== employee.id);
+        return prev.filter((member) => member.id !== employee.id);
       } else {
         return [...prev, employee];
       }
@@ -109,16 +90,16 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
       const newTeam = {
         ...teamData,
         members: selectedMembers.length,
-        selectedMembers: selectedMembers
+        selectedMembers: selectedMembers,
       };
       onCreate(newTeam);
     }
   };
 
   const handleInputChange = (field, value) => {
-    setTeamData(prev => ({
+    setTeamData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -127,7 +108,9 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-gray-900">Create New Team</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Create New Team
+          </h2>
           <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
             Step {step} of 2
           </span>
@@ -145,15 +128,21 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
         {step === 1 ? (
           <div className="p-6">
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Select Team Members</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Select Team Members
+              </h3>
               <p className="text-gray-600">
-                Choose employees to add to your team. You can search by name, domain, or department.
+                Choose employees to add to your team. You can search by name,
+                domain, or department.
               </p>
             </div>
 
             {/* Search */}
             <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Search employees..."
@@ -166,12 +155,16 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
             {/* Employee List */}
             <div className="space-y-3 max-h-96 overflow-y-auto">
               {filteredEmployees.map((employee) => {
-                const isSelected = selectedMembers.some(member => member.id === employee.id);
+                const isSelected = selectedMembers.some(
+                  (member) => member.id === employee.id
+                );
                 return (
                   <div
                     key={employee.id}
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                      isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      isSelected
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                     onClick={() => handleMemberToggle(employee)}
                   >
@@ -185,8 +178,12 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
                           <div>
-                            <h4 className="font-medium text-gray-900">{employee.name}</h4>
-                            <p className="text-sm text-gray-600">{employee.email}</p>
+                            <h4 className="font-medium text-gray-900">
+                              {employee.name}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {employee.email}
+                            </p>
                           </div>
                           <div className="flex items-center gap-4 text-sm text-gray-500">
                             <div className="flex items-center gap-1">
@@ -213,8 +210,12 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
         ) : (
           <div className="p-6">
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Team Information</h3>
-              <p className="text-gray-600">Provide details about your new team.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Team Information
+              </h3>
+              <p className="text-gray-600">
+                Provide details about your new team.
+              </p>
             </div>
 
             {/* Selected Members Summary */}
@@ -245,7 +246,7 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
                     type="text"
                     placeholder="Enter team name"
                     value={teamData.name}
-                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
@@ -258,7 +259,9 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
                   <textarea
                     placeholder="Describe the team's purpose and responsibilities..."
                     value={teamData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
                   />
@@ -273,16 +276,23 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
                   <div className="relative">
                     <select
                       value={teamData.department}
-                      onChange={(e) => handleInputChange('department', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("department", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                       required
                     >
                       <option value="">Select department</option>
                       {departments.map((dept) => (
-                        <option key={dept} value={dept}>{dept}</option>
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <ChevronDown
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
                   </div>
                 </div>
 
@@ -293,15 +303,22 @@ const CreateTeamModal = ({ onClose, onCreate }) => {
                   <div className="relative">
                     <select
                       value={teamData.teamLead}
-                      onChange={(e) => handleInputChange('teamLead', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("teamLead", e.target.value)
+                      }
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
                     >
                       <option value="">Select team lead</option>
                       {selectedMembers.map((member) => (
-                        <option key={member.id} value={member.name}>{member.name}</option>
+                        <option key={member.id} value={member.name}>
+                          {member.name}
+                        </option>
                       ))}
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <ChevronDown
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={20}
+                    />
                   </div>
                 </div>
               </div>

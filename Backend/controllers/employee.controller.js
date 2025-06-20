@@ -122,7 +122,7 @@ const addEmployee = async (req, res) => {
 const getAllEmployees = async (req, res) => {
   const employees = await Employee.find()
     .populate("user")
-    .populate("department");
+    .populate("department","name");
   res.json({ employees });
 };
 
@@ -173,6 +173,7 @@ const editEmployee = async (req, res) => {
     }
 
     const employee = await Employee.findById(_id);
+    const oldDeptId = employee.department?.toString();
 
     if (!user || !employee) {
       return res.status(404).json({ message: "Employee not found." });
@@ -221,6 +222,13 @@ const editEmployee = async (req, res) => {
     employee.documents = documents || employee.documents;
 
     await employee.save();
+
+    // Remove from old department if changed
+    if (dept && oldDeptId && oldDeptId !== dept._id.toString()) {
+      await Department.findByIdAndUpdate(oldDeptId, {
+        $pull: { employees: employee._id },
+      });
+    }
 
     res.json({ message: "Employee updated successfully", user, employee });
   } catch (err) {

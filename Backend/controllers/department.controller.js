@@ -47,6 +47,8 @@ const addDepartment = async (req, res) => {
         return res
           .status(400)
           .json({ message: "No employee found for given head ID: " + head });
+      } else {
+        employees.push(headEmployee._id);
       }
     }
 
@@ -112,7 +114,9 @@ const toggleStatus = async (req, res) => {
     const id = req.params.id;
 
     if (!id) {
-      return res.status(400).json({ message: "Id is required for status updation" });
+      return res
+        .status(400)
+        .json({ message: "Id is required for status updation" });
     }
 
     const department = await Department.findById(id);
@@ -125,16 +129,32 @@ const toggleStatus = async (req, res) => {
       { $set: { status: !department.status } }
     );
 
-    res.status(200).json({ message: "Status updated successfully", status:updatedDept.status });
+    res
+      .status(200)
+      .json({
+        message: "Status updated successfully",
+        status: updatedDept.status,
+      });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
+const getDepartmentNames = async (req, res) => {
+  try {
+    const names = await Department.find().select("name");
+
+    res.status(200).json({ names });
+  } catch (err) {
+    console.error("Error fetching departments:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
 
 module.exports = {
   getAllDepartments,
   addDepartment,
   deleteDepartment,
+  getDepartmentNames,
   toggleStatus,
 };

@@ -16,6 +16,7 @@ export default function ManageEmployees() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [departmentFilter, setDepartmentFilter] = useState("All");
   const [showViewModal, setShowViewModal] = useState(false);
+  const [departmentNames, setDepartmentNames] = useState([]);
 
   const fetchEmployees = async () => {
     try {
@@ -35,6 +36,24 @@ export default function ManageEmployees() {
     }
   };
 
+  const fetchDepartmentNames = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/departments/names`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setDepartmentNames(data.names || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
+    }
+  };
+
   const handleEditClick = (emp) => {
     setSelectedEmployee(emp);
     setEditModal(true);
@@ -42,6 +61,7 @@ export default function ManageEmployees() {
 
   useEffect(() => {
     fetchEmployees();
+    fetchDepartmentNames();
   }, []);
 
   const handleViewClick = (emp) => {
@@ -67,14 +87,11 @@ export default function ManageEmployees() {
       (statusFilter === "Inactive" && emp.status !== "Active");
 
     const matchesDepartment =
-      departmentFilter === "All" || emp.department?.name === departmentFilter;
+      departmentFilter === "All" ||
+      emp.department?.name.toLowerCase() === departmentFilter.toLowerCase();
 
     return matchesSearch && matchesStatus && matchesDepartment;
   });
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -179,10 +196,17 @@ export default function ManageEmployees() {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none min-w-[120px]"
             >
               <option value="All">All</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Sales">Sales</option>
-              <option value="HR">HR</option>
+              {departmentNames.map((dept, idx) => {
+                return (
+                  <option
+                    className="uppercase"
+                    key={dept._id + idx}
+                    value={dept.name}
+                  >
+                    {dept.name}
+                  </option>
+                );
+              })}
             </select>
 
             <select
@@ -245,13 +269,13 @@ export default function ManageEmployees() {
                   <td className="px-6 py-4 uppercase whitespace-nowrap text-sm font-medium text-gray-900">
                     {emp._id}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 capitalize whitespace-nowrap text-sm text-gray-900">
                     {emp.user?.name || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {emp.user?.email || "N/A"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 uppercase font-bold  text-purple-500 whitespace-nowrap text-sm ">
                     {emp.department?.name || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -548,6 +572,8 @@ export default function ManageEmployees() {
               message: "Employee Updated successfully!",
             });
           }}
+          
+          departments={departmentNames}
           selectedEmployee={selectedEmployee}
         />
       )}
@@ -566,6 +592,7 @@ export default function ManageEmployees() {
               message: "Employee added successfully!",
             });
           }}
+          departments={departmentNames}
         />
       )}
     </div>

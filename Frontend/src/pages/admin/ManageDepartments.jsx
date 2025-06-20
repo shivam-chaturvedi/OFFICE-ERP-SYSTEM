@@ -189,7 +189,7 @@ const ManageDepartments = () => {
   const totalDepartments = departments.length;
   const activeDepartments = departments.filter((d) => d.status).length;
   const inactiveDepartments = departments.filter((d) => !d.status).length;
-  const totalEmployees = departments.reduce((sum, d) => sum + d.employees, 0);
+  const totalEmployees = departments.reduce((sum, d) => sum + d.employees?.length, 0);
 
   const StatCard = ({ title, value, icon: Icon, trend, color = "blue" }) => (
     <div className="bg-white rounded-lg border border-gray-200 p-6">

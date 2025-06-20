@@ -5,7 +5,7 @@ import Alert from "../components/Alert";
 import SalaryInput from "./SalaryInput";
 import { useEffect } from "react";
 
-function AddEmployeeModal({ onClose, onSuccess }) {
+function AddEmployeeModal({ onClose, onSuccess ,departments}) {
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
   const [salary, setSalary] = useState([{type:"basic",amount:""}]);
@@ -41,15 +41,7 @@ function AddEmployeeModal({ onClose, onSuccess }) {
     status: "Active",
   });
 
-  const departments = [
-    "IT",
-    "DevOps",
-    "Finance",
-    "HR",
-    "Engineering",
-    "Sales",
-    "NA",
-  ];
+  
   const shifts = ["Morning", "Evening", "Night", "General"];
   const statusOptions = ["Active", "On Leave", "Resigned", "Terminated"];
   const genderOptions = ["Male", "Female", "Other"];
@@ -303,9 +295,9 @@ function AddEmployeeModal({ onClose, onSuccess }) {
               className="employee-form"
             >
               <option value="">Select Department</option>
-              {departments.map((d) => (
-                <option key={d} value={d}>
-                  {d}
+              {departments.map((dept,idx) => (
+                <option key={dept._id+idx} value={dept.name}>
+                  {dept.name}
                 </option>
               ))}
             </select>

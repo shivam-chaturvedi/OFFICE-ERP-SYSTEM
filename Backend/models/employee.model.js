@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Department = require("../models/department.model");
 
 const employeeSchema = new mongoose.Schema({
   // Basic Details
@@ -45,9 +46,15 @@ const employeeSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-employeeSchema.pre("save", function (next) {
-  this.updated_at = new Date();
+
+employeeSchema.post("save", async function (doc, next) {
+  if (doc.department) {
+    await Department.findByIdAndUpdate(doc.department, {
+      $addToSet: { employees: doc._id },
+    });
+  }
   next();
 });
+
 
 module.exports = mongoose.model("Employee", employeeSchema);

@@ -3,7 +3,8 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const employeeRoutes = require("./routes/employee.routes");
-const deptRoutes=require('./routes/department.routes')
+const deptRoutes = require("./routes/department.routes");
+const teamRoutes = require("./routes/team.routes");
 
 const authMiddleware = require("./middlewares/auth.middleware");
 
@@ -21,33 +22,33 @@ app.use(
 mongoose
   .connect("mongodb://localhost:27017/erpdb")
   .then(async () => {
-    const alreadyExists=await User.findOne({email:"admin@gmail.com"})
-    if(alreadyExists){
-      console.log("Already Exists Admin User "+ alreadyExists)
-      
-    }else{
-    const pass =await bcrypt.hash("admin", 10);
-    try {
-      const adminUser = await User.create({
-        name: "admin",
-        roles: ["admin"], 
-        position: "ADMIN",
-        phone: "1234567891",
-        email: "admin@gmail.com", 
-        password: pass,
-      });
-      console.log("Created Admin User "+adminUser)
-    } catch (err) {  
-      console.log(err.message);
+    const alreadyExists = await User.findOne({ email: "admin@gmail.com" });
+    if (alreadyExists) {
+      console.log("Already Exists Admin User " + alreadyExists);
+    } else {
+      const pass = await bcrypt.hash("admin", 10);
+      try {
+        const adminUser = await User.create({
+          name: "admin",
+          roles: ["admin"],
+          position: "ADMIN",
+          phone: "1234567891",
+          email: "admin@gmail.com",
+          password: pass,
+        });
+        console.log("Created Admin User " + adminUser);
+      } catch (err) {
+        console.log(err.message);
+      }
     }
-  } 
   })
   .catch((err) => console.log(err));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/employees",employeeRoutes)
-app.use('/api/departments',deptRoutes)
+app.use("/api/employees", employeeRoutes);
+app.use("/api/departments", deptRoutes);
+app.use("/api/teams", teamRoutes);
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
