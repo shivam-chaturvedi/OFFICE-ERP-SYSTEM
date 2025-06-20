@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import CreateTeamModal from "../../components/CreateTeamModal";
 import config from "../../config";
+import Loader from "../../components/Loader";
+import Alert from "../../components/Alert";
 
 const TeamManagement = () => {
   const [teams, setTeams] = useState([]);
@@ -23,6 +25,52 @@ const TeamManagement = () => {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [loader, setLoader] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [alert, setAlert] = useState({});
+
+  const fetchEmployees = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/employees`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setEmployees(data.employees || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/departments/names`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setDepartments(data.names || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  React.useEffect(() => {
+    console.log();
+    fetchEmployees();
+    fetchDepartments();
+  }, []);
 
   const fetchTeams = async () => {
     try {
@@ -50,12 +98,12 @@ const TeamManagement = () => {
 
     const matchesDept =
       departmentFilter === "All Departments" ||
-      team.department === departmentFilter;
+      team.department.name.toLowerCase() === departmentFilter.toLowerCase();
 
     const matchesStatus =
       statusFilter === "All Status" ||
-      (statusFilter === "Active" && team.hasActiveProject) ||
-      (statusFilter === "Inactive" && !team.hasActiveProject);
+      (statusFilter === "Active" && team.active) ||
+      (statusFilter === "Inactive" && !team.active);
 
     return matchesSearch && matchesDept && matchesStatus;
   });
@@ -76,6 +124,8 @@ const TeamManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {loader && <Loader />}
+      <Alert alert={alert} setAlert={setAlert} />
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-6">
         <div className="flex justify-between items-start">
@@ -89,7 +139,7 @@ const TeamManagement = () => {
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+            className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
           >
             <Plus size={20} />
             Create Team
@@ -115,13 +165,13 @@ const TeamManagement = () => {
           <StatCard
             icon={<Building className="text-purple-600" size={20} />}
             label="Departments"
-            value={new Set(teams.map((t) => t.department)).size}
+            value={new Set(teams.map((t) => t.department._id)).size}
             bgColor="bg-purple-100"
           />
           <StatCard
             icon={<User className="text-orange-600" size={20} />}
             label="Total Members"
-            value={teams.reduce((acc, t) => acc + t.members, 0)}
+            value={teams.reduce((acc, t) => acc + t.members.length, 0)}
             bgColor="bg-orange-100"
           />
         </div>
@@ -149,12 +199,9 @@ const TeamManagement = () => {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none"
             >
               <option>All Departments</option>
-              <option>Engineering</option>
-              <option>Design</option>
-              <option>Marketing</option>
-              <option>HR</option>
-              <option>Analytics</option>
-              <option>Quality Assurance</option>
+              {departments.map((d) => {
+                return <option key={d._id}>{d.name}</option>;
+              })}
             </select>
 
             <select
@@ -170,14 +217,14 @@ const TeamManagement = () => {
         </div>
 
         {/* Teams Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTeams.map((team) => (
+        <div className="grid grid-cols-1  lg:grid-cols-2 gap-6">
+          {filteredTeams.map((team, idx) => (
             <div
-              key={team.id}
+              key={team._id + idx}
               className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
             >
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="uppercase text-xl shadow-md shadow-pink-400 p-2 rounded-xl font-semibold text-gray-900">
                   {team.name}
                 </h3>
                 <button className="text-gray-400 hover:text-gray-600">
@@ -186,32 +233,34 @@ const TeamManagement = () => {
               </div>
 
               <div className="space-y-3 mb-6">
-                <TeamDetail label="ID" value={team.id} />
-                <TeamDetail label="Department" value={team.department} />
+                <TeamDetail label="ID" value={team._id} />
+                <TeamDetail label="Department" value={team.department.name} />
                 <TeamDetail
                   label="Members"
                   value={
                     <span className="flex items-center gap-1">
-                      <Users size={16} /> {team.members}
+                      <Users size={16} /> {team.members.length}
                     </span>
                   }
                 />
-                <TeamDetail label="Team Lead" value={team.teamLead} />
-                <div>
-                  <span className="text-gray-600">Active Project</span>
-                  <div className="mt-1">
-                    {team.hasActiveProject ? (
-                      <span className="inline-flex items-center gap-1 text-green-700 bg-green-100 px-2 py-1 rounded text-sm">
-                        <FolderOpen size={14} />
-                        {team.activeProject}
-                      </span>
-                    ) : (
-                      <span className="text-red-600 text-sm">
-                        {team.activeProject}
-                      </span>
-                    )}
+                <TeamDetail label="Team Lead" value={team.leader?.user?.name} />
+                {team.active_project ? (
+                  <div>
+                    <span className="text-gray-600">Active Project</span>
+                    <div className="mt-1">
+                      {team.active ? (
+                        <span className="inline-flex items-center gap-1 text-green-700 bg-green-100 px-2 py-1 rounded text-sm">
+                          <FolderOpen size={14} />
+                          {team.active_project?.name}
+                        </span>
+                      ) : (
+                        <span className="text-red-600 text-sm">
+                          {team.active_project?.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </div>
 
               <div className="flex gap-2">
@@ -247,8 +296,14 @@ const TeamManagement = () => {
           <CreateTeamModal
             onClose={() => setShowCreateModal(false)}
             onSuccess={() => {
+              setAlert({
+                type: "success",
+                message: "Team Added Successfully",
+              });
               fetchTeams();
             }}
+            employees={employees}
+            departments={departments}
           />
         </div>
       )}
@@ -266,24 +321,24 @@ const TeamManagement = () => {
             <h2 className="text-xl font-semibold mb-4">Team Details</h2>
             <div className="space-y-2">
               <p>
-                <strong>ID:</strong> {selectedTeam.id}
+                <strong>ID:</strong> {selectedTeam._id}
               </p>
               <p>
                 <strong>Name:</strong> {selectedTeam.name}
               </p>
               <p>
-                <strong>Department:</strong> {selectedTeam.department}
+                <strong>Department:</strong> {selectedTeam.department.name}
               </p>
               <p>
-                <strong>Team Lead:</strong> {selectedTeam.teamLead}
+                <strong>Team Lead:</strong> {selectedTeam.leader?.user?.name}
               </p>
               <p>
-                <strong>Members:</strong> {selectedTeam.members}
+                <strong>Members:</strong> {selectedTeam.members?.length}
               </p>
               <p>
                 <strong>Active Project:</strong>{" "}
-                {selectedTeam.hasActiveProject
-                  ? selectedTeam.activeProject
+                {selectedTeam.active_project
+                  ? selectedTeam.active_project?.name
                   : "No Active Project"}
               </p>
             </div>
@@ -337,7 +392,7 @@ const TeamManagement = () => {
                 id="edit-team-lead"
                 name="teamLead"
                 type="text"
-                value={selectedTeam.teamLead}
+                value={selectedTeam.leader?.user?.name}
                 onChange={(e) =>
                   updateSelectedTeamField("teamLead", e.target.value)
                 }
@@ -349,7 +404,7 @@ const TeamManagement = () => {
                 id="edit-members"
                 name="members"
                 type="number"
-                value={selectedTeam.members}
+                value={selectedTeam.members.length}
                 onChange={(e) =>
                   updateSelectedTeamField("members", Number(e.target.value))
                 }
@@ -361,7 +416,7 @@ const TeamManagement = () => {
                 id="edit-active-project"
                 name="activeProject"
                 type="text"
-                value={selectedTeam.activeProject}
+                value={selectedTeam.active_project?.name}
                 onChange={(e) =>
                   updateSelectedTeamField("activeProject", e.target.value)
                 }
@@ -376,7 +431,7 @@ const TeamManagement = () => {
                   id="hasActiveProject"
                   name="hasActiveProject"
                   type="checkbox"
-                  checked={selectedTeam.hasActiveProject}
+                  checked={selectedTeam.active_project}
                   onChange={(e) =>
                     updateSelectedTeamField(
                       "hasActiveProject",
@@ -415,8 +470,10 @@ const StatCard = ({ icon, label, value, bgColor }) => (
 
 const TeamDetail = ({ label, value }) => (
   <div className="flex justify-between">
-    <span className="text-gray-600">{label}</span>
-    <span className="text-gray-900">{value}</span>
+    <span className="text-gray-600 uppercase font-extralight">{label}</span>
+    <span className="text-pink-600 uppercase font-semibold text-lg ">
+      {value}
+    </span>
   </div>
 );
 
