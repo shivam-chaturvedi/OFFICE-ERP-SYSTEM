@@ -1,14 +1,64 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const taskSchema = new mongoose.Schema({
-  project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
-  assigned_to: { type: mongoose.Schema.Types.ObjectId, ref: 'Employee' },
-  assigned_by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  title: String,
-  description: String,
-  status: { type: String, enum: ['pending', 'in_progress', 'completed'], default: 'pending' },
-  due_date: Date,
-  priority: { type: String, enum: ['low', 'medium', 'high'] }
-});
+const taskSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+      unique: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    instructions: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    attachments: {
+      type: [String],
+      default: [],
+    },
+    progress: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    tags: {
+      type: [String],
+      lowercase: true,
+      default: [],
+    },
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["pending", "in progress", "completed", "on hold", "cancelled"],
+      default: "pending",
+      lowercase: true,
+    },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high", "critical"],
+      default: "medium",
+      lowercase: true,
+    },
+    deadline: {
+      type: Date,
+    },
+    completed_at: {
+      type: Date,
+    },
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model('Task', taskSchema);
+module.exports = mongoose.model("Task", taskSchema);

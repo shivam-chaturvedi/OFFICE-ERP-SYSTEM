@@ -5,6 +5,7 @@ const userRoutes = require("./routes/user.routes");
 const employeeRoutes = require("./routes/employee.routes");
 const deptRoutes = require("./routes/department.routes");
 const teamRoutes = require("./routes/team.routes");
+const taskRoutes = require("./routes/task.routes");
 
 const authMiddleware = require("./middlewares/auth.middleware");
 
@@ -49,6 +50,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/departments", deptRoutes);
 app.use("/api/teams", teamRoutes);
+app.use("/api/tasks", taskRoutes);
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
