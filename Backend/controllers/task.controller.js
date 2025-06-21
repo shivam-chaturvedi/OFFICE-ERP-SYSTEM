@@ -27,13 +27,10 @@ const addTask = async (req, res) => {
       completed_at,
     } = req.body;
 
-    
-    // Basic validation for required fields
     if (!title || !team) {
       return res.status(400).json({ message: "Title and Team are required" });
     }
 
-    // Create task object manually to control the order and prevent unwanted fields
     const newTask = new Task({
       title,
       description: description || "",
@@ -49,7 +46,8 @@ const addTask = async (req, res) => {
     });
 
     const savedTask = await newTask.save();
-    res.status(201).json({ task: savedTask });
+    const task = await Task.findById(savedTask._id).populate("team");
+    res.status(201).json({ task });
   } catch (err) {
     console.error("Add Task Error:", err.message);
     res.status(400).json({ message: "Error adding task", error: err.message });

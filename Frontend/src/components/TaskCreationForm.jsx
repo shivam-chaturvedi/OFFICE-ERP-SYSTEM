@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Loader from "./Loader";
 import config from "../config";
+import Alert from "./Alert";
 
 const TaskCreationForm = ({ onClose, onSuccess }) => {
   const [activeTab, setActiveTab] = useState("Details");
@@ -20,7 +21,6 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
     priority: "",
     deadline: "",
     tags: [],
-    isRecurring: false,
     team: "",
     attachments: [],
     instructions: "",
@@ -28,6 +28,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
   const [newTag, setNewTag] = useState("");
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
   const [showTeamsDropdown, setShowTeamsDropdown] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
 
   const priorities = ["Low", "Medium", "High", "Critical"];
   const tabs = ["Details", "Assignment", "Attachments"];
@@ -35,6 +36,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
   const [teams, setTeams] = useState([]);
   const [isSelected, setIsSelected] = useState(null);
   const [loader, setLoader] = useState(false);
+  const [alert, setAlert] = useState({});
 
   const fetchTeams = async () => {
     try {
@@ -74,14 +76,6 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
       tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
-  const toggleTeamAssignment = (team) => {
-    setFormData((prev) => ({
-      ...prev,
-      team: prev.team === team._id ? "" : team._id,
-    }));
-    setIsSelected(formData.team);
-    setShowTeamsDropdown(false);
-  };
 
   const removeAttachment = (index) => {
     setFormData((prev) => ({
@@ -114,28 +108,49 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
   };
 
   const handleSubmit = async () => {
+    if (!formData.title) {
+      setAlert({
+        type: "error",
+        message: "Please Enter a title ",
+      });
+      return;
+    }
+    if (!formData.team) {
+      setAlert({
+        type: "error",
+        message: "Please Select a team in assignment tab first ",
+      });
+      return;
+    }
     try {
       setLoader(true);
       const res = await fetch(`${config.BACKEND_URL}/api/tasks/add`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title: "T1",
-          team: "685591018c2e510581fa5eeb",
-        }),
+        body: JSON.stringify(formData),
       });
       const data = await res.json();
+
       if (res.ok) {
         onSuccess(data.task);
+        onClose();
+      } else {
+        setAlert({
+          type: "error",
+          message: data.message,
+        });
       }
-      console.log(data.task);
     } catch (error) {
-      console.error("Failed to fetch teams", error);
+      setAlert({
+        type: "error",
+        message: error.message,
+      });
+      // console.error("Failed to fetch teams", error);
     } finally {
       setLoader(false);
-      onClose();
     }
   };
 
@@ -143,10 +158,20 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
     fetchTeams();
   }, []);
 
+  const handleNextTab = () => {
+    // const tabs = ["Details", "Assignment", "Attachments"];
+    if (activeTab === "Details") {
+      setActiveTab("Assignment");
+    } else if (activeTab === "Assignment") {
+      setActiveTab("Attachments");
+    }
+  };
+
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-black/10 flex items-center justify-center z-50">
       {loader && <Loader />}
       <div className="bg-white rounded-lg w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+        <Alert alert={alert} setAlert={setAlert} />
         {/* Modal Header */}
         <div className="flex justify-between items-center p-6 border-b">
           <div>
@@ -159,7 +184,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="cursor-pointer text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X size={24} />
           </button>
@@ -171,7 +196,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 text-sm font-medium transition-colors ${
+              className={`cursor-pointer  px-6 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? "text-blue-600 border-b-2 border-blue-600"
                   : "text-gray-500 hover:text-gray-700"
@@ -229,7 +254,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                     onClick={() =>
                       setShowPriorityDropdown(!showPriorityDropdown)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500"
+                    className="cursor-pointer w-full px-3 py-2 border border-gray-300 rounded-md text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500"
                   >
                     <span
                       className={
@@ -250,7 +275,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                             handleInputChange("priority", priority);
                             setShowPriorityDropdown(false);
                           }}
-                          className="w-full px-3 py-2 text-left hover:bg-gray-50"
+                          className="cursor-pointer w-full px-3 py-2 text-left hover:bg-gray-50"
                         >
                           {priority}
                         </button>
@@ -292,7 +317,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="cursor-pointer text-blue-600 hover:text-blue-800"
                       >
                         <X size={14} />
                       </button>
@@ -313,7 +338,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={addTag}
-                    className="bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 rounded-md"
+                    className="cursor-pointer bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 rounded-md"
                   >
                     <Plus size={16} />
                   </button>
@@ -336,36 +361,12 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                 {/* Selected Teams */}
                 {formData.team && (
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      Selected Team ID ({formData.team})
+                    <h4 className="uppercase text-xl font-medium text-gray-700 mb-2">
+                      Selected Team{" "}
+                      <span className="text-purple-600 underline">
+                        {selectedTeam?.name}
+                      </span>
                     </h4>
-                    {/* <div className="flex flex-wrap gap-2">
-                      {formData.team.map((team) => (
-                        <div
-                          key={team.id}
-                          className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-3 h-3 rounded-full ${team.color}`}
-                            ></div>
-                            <span className="text-sm font-medium text-gray-900">
-                              {team.name}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ({team.members} members)
-                            </span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => toggleTeamAssignment(team)}
-                            className="text-blue-600 hover:text-blue-800 ml-2"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div> */}
                   </div>
                 )}
 
@@ -374,7 +375,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setShowTeamsDropdown(!showTeamsDropdown)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500"
+                    className="cursor-pointer w-full px-3 py-2 border border-gray-300 rounded-md text-left flex justify-between items-center focus:ring-2 focus:ring-blue-500"
                   >
                     <span className="text-gray-700">
                       Select teams to assign
@@ -389,8 +390,16 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                           <button
                             key={team._id + idx}
                             type="button"
-                            onClick={() => toggleTeamAssignment(team)}
-                            className={`w-full px-3 py-3 text-left hover:bg-gray-50 flex items-center justify-between ${
+                            onClick={() => {
+                              setSelectedTeam(team);
+                              setIsSelected(team._id);
+                              setShowTeamsDropdown(false);
+                              setFormData((prev) => ({
+                                ...prev,
+                                team: team._id,
+                              }));
+                            }}
+                            className={`cursor-pointer w-full px-3 py-3 text-left hover:bg-gray-50 flex items-center justify-between ${
                               isSelected ? "bg-blue-50" : ""
                             }`}
                           >
@@ -533,7 +542,7 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
                         <button
                           type="button"
                           onClick={() => removeAttachment(index)}
-                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          className="cursor-pointer text-gray-400 hover:text-red-600 transition-colors"
                         >
                           <X size={16} />
                         </button>
@@ -568,17 +577,29 @@ const TaskCreationForm = ({ onClose, onSuccess }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              className="cursor-pointer px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
             >
               Cancel
             </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
-            >
-              Create Task
-            </button>
+            {activeTab === "Attachments" ? (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+              >
+                Create Task
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  handleNextTab();
+                }}
+                className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
+              >
+                Next
+              </button>
+            )}
           </div>
         </div>
       </div>
