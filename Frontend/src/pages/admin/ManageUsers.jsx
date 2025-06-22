@@ -7,9 +7,10 @@ import Alert from "../../components/Alert";
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
-  const [editUser, setEditUser] = useState(null);
   const [alert, setAlert] = useState({});
   const [loader, setLoader] = useState(false);
+  const [employees, setEmployees] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchUsers = async () => {
     setLoader(true);
@@ -33,9 +34,39 @@ const ManageUsers = () => {
     }
   };
 
+  const fetchEmployees = async () => {
+    setLoader(true);
+    try {
+      const res = await fetch(`${config.BACKEND_URL}/api/employees`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setEmployees(data.employees);
+    } catch (err) {
+      console.error("Failed to load users:", err.message);
+      setAlert({
+        type: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoader(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchEmployees();
   }, []);
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user._id.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const deleteUser = async (id) => {
     const confirmed = confirm(
@@ -64,47 +95,6 @@ const ManageUsers = () => {
     } finally {
       setLoader(false);
     }
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    setLoader(true);
-    try {
-      const res = await fetch(`${config.BACKEND_URL}/api/users/edit`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
-        },
-        body: JSON.stringify(editUser),
-      });
-      if (res.ok) {
-        fetchUsers();
-        setEditUser(null);
-        setAlert({
-          type: "success",
-          message: "User Updated Successfully !",
-        });
-      } else {
-        console.error("Edit failed");
-        setAlert({
-          type: "error",
-          message: "Edit Failed",
-        });
-      }
-    } catch (err) {
-      console.error("Error editing user:", err.message);
-      setAlert({
-        type: "error",
-        message: "Edit Failed",
-      });
-    } finally {
-      setLoader(false);
-    }
-  };
-
-  const handleEditChange = (e) => {
-    setEditUser({ ...editUser, [e.target.name]: e.target.value });
   };
 
   // Calculate stats
@@ -287,9 +277,11 @@ const ManageUsers = () => {
                   </svg>
                 </div>
                 <input
-                
                   type="text"
                   placeholder="Search users by name or email..."
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                  }}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
@@ -328,7 +320,7 @@ const ManageUsers = () => {
               </select>
 
               <button
-                className="bg-blue-600 text-white px-4 py-2 rounded-md shadow hover:bg-blue-700 flex items-center gap-2"
+                className="cursor-pointer bg-yellow-500 text-black px-4 py-2 rounded-md shadow hover:bg-yellow-300 flex items-center gap-2"
                 onClick={() => setShowModal(true)}
               >
                 <svg
@@ -344,7 +336,7 @@ const ManageUsers = () => {
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                Add User
+                Add or Edit User
               </button>
             </div>
           </div>
@@ -356,92 +348,8 @@ const ManageUsers = () => {
         <AddUserModal
           onClose={() => setShowModal(false)}
           onSuccess={fetchUsers}
-           employees={users}
+          employees={employees}
         />
-      )}
-
-      {editUser && (
-        <div className="fixed inset-0 backdrop-blur-xs z-50 flex items-center justify-center">
-          <form
-            onSubmit={handleEditSubmit}
-            className="bg-white p-6 rounded-lg w-full max-w-lg shadow-md space-y-4"
-          >
-            <h2 className="text-xl font-semibold">Edit User</h2>
-            <input
-              name="name"
-              value={editUser.name}
-              onChange={handleEditChange}
-              placeholder="Name"
-              className="input"
-              required
-            />
-            <input
-              name="email"
-              value={editUser.email}
-              onChange={handleEditChange}
-              placeholder="Email"
-              className="input"
-              required
-            />
-            <input
-              name="phone"
-              value={editUser.phone}
-              onChange={handleEditChange}
-              placeholder="Phone"
-              className="input"
-              required
-            />
-            <input
-              name="position"
-              value={editUser.position}
-              onChange={handleEditChange}
-              placeholder="Position"
-              className="input"
-              required
-            />
-            <input
-              name="salary"
-              value={editUser.salary}
-              onChange={handleEditChange}
-              placeholder="Salary"
-              className="input"
-              required
-            />
-            <input
-              name="password"
-              type="password"
-              onChange={handleEditChange}
-              placeholder="New Password"
-              className="input"
-            />
-            <select
-              name="role"
-              value={editUser.role}
-              onChange={handleEditChange}
-              className="input"
-            >
-              <option value="employee">Employee</option>
-              <option value="hr">HR</option>
-              <option value="admin">Admin</option>
-              <option value="project_manager">Project Manager</option>
-            </select>
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={() => setEditUser(null)}
-                className="bg-gray-300 px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
       )}
 
       {/* Users Table */}
@@ -450,6 +358,9 @@ const ManageUsers = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User Id
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
@@ -460,16 +371,19 @@ const ManageUsers = () => {
                   Department
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Active
+                  Created At
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  Delete
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50">
+                  <div className="text-lg uppercase font-bold text-gray-500 mt-4 ml-2">
+                    #{user._id}
+                  </div>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
@@ -505,71 +419,28 @@ const ManageUsers = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 capitalize">
-                      {user.position === "Frontend Developer" ||
-                      user.position === "System Administrator"
-                        ? "Engineering"
-                        : user.position === "HR Manager" ||
-                          user.position === "HR Executive" ||
-                          user.position === "HR Specialist"
-                        ? "Human Resources"
-                        : user.position === "Team Lead" ||
-                          user.position === "Project Manager"
-                        ? "Engineering"
-                        : user.position === "Senior Manager"
-                        ? "Human Resources"
-                        : "General"}
+                    <div className="uppercase text-xl font-semibold text-purple-400 ">
+                      {
+                        employees.find((emp) => emp._id === user._id)
+                          ?.department?.name
+                      }
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
-                      {(() => {
-                        const now = new Date();
-                        const created = new Date(user.createdAt);
-                        const diffTime = Math.abs(now - created);
-                        const diffDays = Math.ceil(
-                          diffTime / (1000 * 60 * 60 * 24)
-                        );
-
-                        if (diffDays === 1) return "Today";
-                        if (diffDays === 2) return "1 day ago";
-                        if (diffDays <= 7) return `${diffDays - 1} days ago`;
-                        if (diffDays <= 30)
-                          return `${Math.floor(diffDays / 7)} weeks ago`;
-                        if (diffDays <= 60) return "1 month ago";
-                        return `${Math.floor(diffDays / 30)} months ago`;
-                      })()}
+                      {new Date(user.createdAt).toLocaleDateString()}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setEditUser(user)}
-                        className="text-blue-600 hover:text-blue-900 p-1"
-                        title="Edit user"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-                      {user && user.role !== "admin" && (
+                      {user && !user.roles.includes("admin") ? (
                         <button
                           onClick={() => deleteUser(user._id)}
-                          className="text-red-600 hover:text-red-900 p-1"
+                          className="cursor-pointer text-red-600 hover:text-red-900 p-1"
                           title="Delete user"
                         >
                           <svg
-                            className="w-4 h-4"
+                            className="w-6 h-6"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -582,6 +453,10 @@ const ManageUsers = () => {
                             />
                           </svg>
                         </button>
+                      ) : (
+                        <p className="text-lg capitalize font-extralight text-red-800">
+                          Not allowed for admin
+                        </p>
                       )}
                     </div>
                   </td>

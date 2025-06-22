@@ -45,9 +45,9 @@ exports.validateToken = async (req, res) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.userId);
-    
-    const user=req.user
-    
+
+    const user = req.user;
+
     res.status(200).json({ message: "Token is Valid !", user });
   } catch (err) {
     res.status(400).json({ message: err.message });

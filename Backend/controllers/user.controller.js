@@ -3,44 +3,31 @@ const bcrypt = require("bcryptjs");
 
 const addUser = async (req, res) => {
   try {
-    const {
-      name,
-      role, // "admin", "hr", "employee", "project_manager"
-      position,
-      phone,
-      email,
-      password,
-      address,
-      emergency_contact,
-      date_of_birth,
-      gender,
-    } = req.body;
+    const { emps } = req.body;
+    // emps=[{emp1_id:["admin","hr"]},{emp2_id:[]}]
 
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+    emps.map(async (emp, idx) => {
+      let emp_id = Object.keys(emp)[0];
+      let roles = emp[emp_id];
+      if (roles.length < 1) {
+        roles = ["employee"]; //user default role
+      }
+      let user = await User.findByIdAndUpdate(
+        emp_id,
+        {
+          $set: { roles },
+        },
+        { new: true, runValidators: true }
+      );
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new User({
-      name,
-      role,
-      position,
-      phone,
-      email,
-      password: hashedPassword,
-      address,
-      emergency_contact,
-      date_of_birth,
-      gender,
+      if (!user) {
+        return res
+          .status(400)
+          .json({ message: "No employee exist with id " + emp_id });
+      }
     });
 
-    const savedUser = await newUser.save();
-
-    res
-      .status(201)
-      .json({ message: `${role} added successfully.`, user: savedUser });
+    res.status(201).json({ message: `user added successfully.` });
   } catch (err) {
     res.status(500).json({
       message: "Failed to add user",
@@ -66,48 +53,26 @@ const getAllUsers = async (req, res) => {
 const editUser = async (req, res) => {
   try {
     const {
-      _id,
-      name,
-      role,
-      position,
-      phone,
-      email,
-      password,
-      address,
-      emergency_contact,
-      date_of_birth,
-      gender,
+      emp_id,
+      roles, // "admin", "hr", "employee", "project_manager"
     } = req.body;
-
-    const user = await User.findById(_id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!emp_id) {
+      return res.status(400).json({ message: "employee id is required" });
     }
-
-    if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
-      if (existingUser && existingUser._id.toString() !== _id) {
-        return res.status(400).json({ message: "Email already in use" });
+    const user = await User.findByIdAndUpdate(
+      emp_id,
+      { $set: { roles } },
+      {
+        new: true,
+        runValidators: true,
       }
+    );
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "No employee exist with id " + emp_id });
     }
-
-    user.name = name || user.name;
-    user.role = role || user.role;
-    user.position = position || user.position;
-    user.phone = phone || user.phone;
-    user.email = email || user.email;
-    user.address = address || user.address;
-    user.emergency_contact = emergency_contact || user.emergency_contact;
-    user.date_of_birth = date_of_birth || user.date_of_birth;
-    user.gender = gender || user.gender;
-
-    if (password && password.trim() !== "") {
-      user.password = await bcrypt.hash(password, 10);
-    }
-
-    const updatedUser = await user.save();
-    const { password: _, ...userData } = updatedUser.toObject();
-
+    res.status(201).json({ message: `user added successfully.`, user });
     res
       .status(200)
       .json({ message: "User updated successfully", user: userData });
@@ -124,14 +89,22 @@ const removeUser = async (req, res) => {
     if (!id) {
       res.status(400).json({ message: "/{id} is required !" });
     }
-    const user = await User.findOne({ _id: id });
+    let user = await User.findById(id);
     if (user.roles?.includes("admin")) {
       return res.status(400).json({
         message: "Admin can't be removed , You can edit info only for admin!",
       });
     }
-    await User.deleteOne({ _id: id });
-    res.status(200).json({ message: "User Removed !" });
+    user = await User.findOneAndUpdate(
+      { _id: id },
+      { $set: { roles: ["employee"] } },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    res.status(200).json({ message: "User Removed !", user });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -143,4 +116,3 @@ module.exports = {
   editUser,
   removeUser,
 };
- 

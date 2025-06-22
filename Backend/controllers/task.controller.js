@@ -1,4 +1,6 @@
 const Task = require("../models/task.model");
+const User = require("../models/user.model");
+const notifyer = require("../utils/notifyer.util");
 
 const getAllTasks = async (req, res) => {
   try {
@@ -47,9 +49,19 @@ const addTask = async (req, res) => {
 
     const savedTask = await newTask.save();
     const task = await Task.findById(savedTask._id).populate("team");
+  
+    task.team.members.map(async (member) => {
+      const user = await User.findById(member);
+      notifyer.sendTaskAssignedEmail(user,task,team);
+    });
     res.status(201).json({ task });
   } catch (err) {
     console.error("Add Task Error:", err.message);
+    if (err.code == 11000) {
+      return res.status(400).json({
+        message: "Task Title Already Taken ,Please choose any other title",
+      });
+    }
     res.status(400).json({ message: "Error adding task", error: err.message });
   }
 };

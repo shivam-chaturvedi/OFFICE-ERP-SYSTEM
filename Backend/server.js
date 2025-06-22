@@ -8,6 +8,8 @@ const teamRoutes = require("./routes/team.routes");
 const taskRoutes = require("./routes/task.routes");
 
 const authMiddleware = require("./middlewares/auth.middleware");
+require("dotenv").config();
+
 
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
