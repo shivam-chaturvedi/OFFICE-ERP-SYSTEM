@@ -197,7 +197,7 @@ const ManageTasks = () => {
     if (selectedTasks.length === filteredTasks.length) {
       setSelectedTasks([]);
     } else {
-      setSelectedTasks(filteredTasks.map((task) => task.id));
+      setSelectedTasks(filteredTasks.map((task) => task._id));
     }
   };
 
@@ -435,7 +435,7 @@ const ManageTasks = () => {
                             {task.title}
                           </h3>
                           <h3 className="text-sm sm:text-md font-medium text-gray-500 break-all">
-                           # {task._id}
+                            # {task._id}
                           </h3>
                         </div>
 

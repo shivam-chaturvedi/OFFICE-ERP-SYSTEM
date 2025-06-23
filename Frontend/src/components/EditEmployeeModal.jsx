@@ -4,7 +4,12 @@ import Loader from "../components/Loader";
 import Alert from "../components/Alert";
 import SalaryInput from "./SalaryInput";
 
-function EditEmployeeModal({ onClose, onSuccess, selectedEmployee,departments }) {
+function EditEmployeeModal({
+  onClose,
+  onSuccess,
+  selectedEmployee,
+  departments,
+}) {
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
   const [salary, setSalary] = useState([]);
@@ -29,7 +34,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee,departments })
       relation: "",
       contact_number: "",
     },
-    department: "NA",
+    department: selectedEmployee.department?.name,
     date_of_joining: "",
     experience: 0,
     skills: "",
@@ -338,6 +343,7 @@ function EditEmployeeModal({ onClose, onSuccess, selectedEmployee,departments })
               className="employee-form"
             >
               <option value="">Select Department</option>
+
               {departments.map((dept, idx) => (
                 <option
                   className="uppercase"

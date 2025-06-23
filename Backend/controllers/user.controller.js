@@ -1,5 +1,8 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
+const Busboy = require("busboy");
 
 const addUser = async (req, res) => {
   try {
@@ -110,9 +113,63 @@ const removeUser = async (req, res) => {
   }
 };
 
+const uploadProfilePicture = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "/{id} is required!" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const busboy = Busboy({ headers: req.headers });
+
+    let uploadPath = "";
+    let fileName = "";
+
+    const profilesDir = path.join(__dirname, "../profiles");
+
+    if (!fs.existsSync(profilesDir)) {
+      fs.mkdirSync(profilesDir);
+    }
+
+    busboy.on("file", (fieldname, file, originalFilename) => {
+      fileName = user._id + "_profile.png";
+      uploadPath = path.join(profilesDir, fileName);
+
+      const writeStream = fs.createWriteStream(uploadPath);
+      file.pipe(writeStream);
+
+      writeStream.on("close", async () => {
+        user.profile_image = `/profiles/${fileName}`;
+        await user.save();
+
+        return res.status(200).json({
+          message: "Profile picture updated",
+          profile_image: user.profile_image,
+        });
+      });
+    });
+
+    busboy.on("error", (err) => {
+      console.error(err);
+      return res.status(500).json({ message: "Upload failed" });
+    });
+
+    req.pipe(busboy);
+  } catch (err) {
+    console.log(err.message)
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   addUser,
   getAllUsers,
   editUser,
   removeUser,
+  uploadProfilePicture,
 };

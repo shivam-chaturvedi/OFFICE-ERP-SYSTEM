@@ -46,9 +46,14 @@ const Login = ({ setUser }) => {
         }),
       });
 
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         localStorage.setItem("token", data.token);
+        if (data.user?.roles.includes("admin")) {
+          data.user.role = "admin";
+        } else {
+          data.user.role = data.user.roles[0];
+        }
         setUser(data.user || {});
 
         setAlert({
@@ -58,16 +63,15 @@ const Login = ({ setUser }) => {
 
         navigate("/");
       } else {
-        const errorData = await res.json();
         setAlert({
           type: "error",
-          message: errorData.message || "Login Failed.",
+          message: data.message || "Login Failed.",
         });
       }
     } catch (err) {
       setAlert({
         type: "error",
-        message: "Network error. Please try again.",
+        message: err.message,
       });
     } finally {
       setLoader(false);
@@ -78,7 +82,7 @@ const Login = ({ setUser }) => {
 
   return (
     <div className="flex flex-col justify-center items-center h-screen bg-gray-100">
-     {loader && <Loader />}
+      {loader && <Loader />}
       <div className="mb-6 text-center">
         <h1 className="text-4xl font-bold mb-6 text-gray-800">
           Welcome to TAC Services Pvt. Ltd

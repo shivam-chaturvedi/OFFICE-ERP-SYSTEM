@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
 
     date_of_birth: { type: Date },
     gender: { type: String, enum: ["Male", "Female", "Other"] },
+    profile_image: { type: String },
   },
   { timestamps: true }
 );

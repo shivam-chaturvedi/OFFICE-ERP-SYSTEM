@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const Employee = require("../models/employee.model");
 const Department = require("../models/department.model");
+const Leave = require("../models/leave.model");
 
 function convertToSalaryObject(arr) {
   const salaryObj = {};
@@ -122,7 +123,7 @@ const addEmployee = async (req, res) => {
 const getAllEmployees = async (req, res) => {
   const employees = await Employee.find()
     .populate("user")
-    .populate("department","name");
+    .populate("department", "name");
   res.json({ employees });
 };
 
@@ -239,4 +240,70 @@ const editEmployee = async (req, res) => {
   }
 };
 
-module.exports = { addEmployee, getAllEmployees, editEmployee };
+const getEmployee = async (req, res) => {
+  const id = req.params.id;
+  const employee = await Employee.findById(id)
+    .populate({
+      path: "user",
+      select: "name profile_image",
+    })
+    .populate({
+      path: "department",
+      select: "name",
+    })
+    .populate({
+      path: "tasks",
+      populate: {
+        path: "team",
+      },
+    });
+
+  res.json({ employee });
+};
+
+const applyLeave = async (req, res) => {
+  try {
+    const { emp_id, startDateTime, endDateTime, type, reason } = req.body;
+
+    if (!emp_id || !startDateTime || !endDateTime || !reason) {
+      return res
+        .status(400)
+        .json({ message: "All required fields must be provided." });
+    }
+
+    const leave = new Leave({
+      employee: emp_id,
+      startDateTime,
+      endDateTime,
+      type,
+      reason,
+    });
+
+    await leave.save();
+
+    res.status(201).json({
+      message: "Leave applied successfully",
+      leave,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const getAllLeaves = async (req,res) => {
+  try {
+    const leaves = await Leave.find();
+    res.json({ leaves });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = {
+  addEmployee,
+  getAllEmployees,
+  editEmployee,
+  getEmployee,
+  applyLeave,
+  getAllLeaves,
+};

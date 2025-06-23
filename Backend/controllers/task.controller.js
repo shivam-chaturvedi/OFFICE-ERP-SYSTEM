@@ -1,6 +1,7 @@
 const Task = require("../models/task.model");
 const User = require("../models/user.model");
 const notifyer = require("../utils/notifyer.util");
+const Employee = require("../models/employee.model");
 
 const getAllTasks = async (req, res) => {
   try {
@@ -49,11 +50,15 @@ const addTask = async (req, res) => {
 
     const savedTask = await newTask.save();
     const task = await Task.findById(savedTask._id).populate("team");
-  
+
     task.team.members.map(async (member) => {
       const user = await User.findById(member);
-      notifyer.sendTaskAssignedEmail(user,task,team);
+      await Employee.findByIdAndUpdate(member, {
+        $addToSet: { tasks: task._id },
+      });
+      notifyer.sendTaskAssignedEmail(user, task, team);
     });
+
     res.status(201).json({ task });
   } catch (err) {
     console.error("Add Task Error:", err.message);
