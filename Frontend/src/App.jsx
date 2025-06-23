@@ -45,7 +45,7 @@ function App() {
 
 
     useEffect(() => {
-      setUser({ name: "TestUser", role: "admin" });
+      setUser({ name: "TestUser", role: "employee" });
       setLoading(false);
     }, []);
 
