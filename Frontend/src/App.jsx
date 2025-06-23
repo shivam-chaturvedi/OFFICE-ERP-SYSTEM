@@ -44,10 +44,13 @@ function App() {
   const [expanded, setExpanded] = useState(true);
 
 
+
     useEffect(() => {
       setUser({ name: "TestUser", role: "employee" });
       setLoading(false);
     }, []);
+
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -65,11 +68,12 @@ function App() {
         });
 
         if (res.ok) {
-          const data = await res.json();
+          let data = await res.json();
+
           if (data.user.roles.includes("admin")) {
             data.user.role = "admin";
           } else {
-            data.user.role = user.roles[0];
+            data.user.role = data.user.roles[0];
           }
           setUser(data.user);
         } else {
@@ -87,27 +91,28 @@ function App() {
 
   if (loading) return <Loader />;
 
- const ProtectedRoute = ({ children, role }) => {
-  if (!user) return <Navigate to="/login" />;
-  if (role && user.role !== role) return <Navigate to="/" />;
-  return (
-    <div className="flex">
-      <Sidebar
-        user={user}
-        setUser={setUser}
-        expanded={expanded}
-        setExpanded={setExpanded}
-      />
-      <div
-        className={`transition-all duration-300 w-full ${
-          expanded ? "ml-64" : "ml-16"
-        }`}
-      >
-        {children}
+  const ProtectedRoute = ({ children, role }) => {
+    if (!user) return <Navigate to="/login" />;
+    if (role && user.role !== role) return <Navigate to="/" />;
+
+    return (
+      <div className="flex">
+        <Sidebar
+          user={user}
+          setUser={setUser}
+          expanded={expanded}
+          setExpanded={setExpanded}
+        />
+        <div
+          className={`transition-all duration-300 w-full ${
+            expanded ? "ml-64" : "ml-16"
+          }`}
+        >
+          {children}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   return (
     <Router>
@@ -241,7 +246,7 @@ function App() {
           path="/profile"
           element={
             <ProtectedRoute role="employee">
-              <Profile />
+              <Profile user={user} />
             </ProtectedRoute>
           }
         />
@@ -249,7 +254,7 @@ function App() {
           path="/leave-requests"
           element={
             <ProtectedRoute role="employee">
-              <LeaveRequests />
+              <LeaveRequests user={user} />
             </ProtectedRoute>
           }
         />

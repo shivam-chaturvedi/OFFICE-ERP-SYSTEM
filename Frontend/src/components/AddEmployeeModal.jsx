@@ -289,12 +289,12 @@ function AddEmployeeModal({ onClose, onSuccess ,departments}) {
             <Label required>Department</Label>
             <select
               name="department"
-              value={form.department}
+              value={form.department}  
               onChange={handleChange}
               required
               className="employee-form"
             >
-              <option value="">Select Department</option>
+              <option value="na">Select Department</option>
               {departments.map((dept,idx) => (
                 <option key={dept._id+idx} value={dept.name}>
                   {dept.name}

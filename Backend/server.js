@@ -6,10 +6,10 @@ const employeeRoutes = require("./routes/employee.routes");
 const deptRoutes = require("./routes/department.routes");
 const teamRoutes = require("./routes/team.routes");
 const taskRoutes = require("./routes/task.routes");
+const path = require("path");
 
 const authMiddleware = require("./middlewares/auth.middleware");
 require("dotenv").config();
-
 
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
@@ -19,8 +19,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(
-  authMiddleware.verifyToken(["/api/auth/login", "/api/auth/verify-token"])
+  authMiddleware.verifyToken([
+    "/api/auth/login",
+    "/api/auth/verify-token",
+    "/profiles",
+  ])
 );
+app.use("/profiles", express.static(path.join(__dirname, "profiles")));
 
 mongoose
   .connect("mongodb://localhost:27017/erpdb")

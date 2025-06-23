@@ -6,10 +6,13 @@ require("dotenv").config();
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User Not Exists!" });
-    }
+    } 
 
     const matched = await bcrypt.compare(password, user.password);
 
