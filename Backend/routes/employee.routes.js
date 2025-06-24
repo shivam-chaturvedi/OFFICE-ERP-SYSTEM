@@ -8,6 +8,8 @@ router.post("/apply-leave", employeeController.applyLeave);
 router.get("/leaves/:id", employeeController.getAllLeaves);
 router.get("/", authMiddleware.verifyAdmin, employeeController.getAllEmployees);
 router.get("/:id", employeeController.getEmployee);
+router.delete("/leave/delete/:id", employeeController.withdrawLeave);
+
 router.put(
   "/edit",
   authMiddleware.verifyAdmin,

@@ -43,14 +43,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
 
-
-
-    useEffect(() => {
-      setUser({ name: "TestUser", role: "employee" });
-      setLoading(false);
-    }, []);
-
-
+  useEffect(() => {
+    setUser({ name: "TestUser", role: "employee" });
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -278,7 +274,7 @@ function App() {
           path="/tasks"
           element={
             <ProtectedRoute role="employee">
-              <Tasks />
+              <Tasks user={user} />
             </ProtectedRoute>
           }
         />

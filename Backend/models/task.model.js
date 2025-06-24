@@ -11,7 +11,7 @@ const taskSchema = new mongoose.Schema(
     },
     description: {
       type: String,
-      trim: true, 
+      trim: true,
       lowercase: true,
     },
     instructions: {
@@ -57,6 +57,27 @@ const taskSchema = new mongoose.Schema(
     completed_at: {
       type: Date,
     },
+    subtasks: [
+      {
+        employee: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Employee",
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+          trim: true,
+          lowercase: true,
+        },
+        progress: {
+          type: Number,
+          min: 0,
+          max: 100,
+          default: 0,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

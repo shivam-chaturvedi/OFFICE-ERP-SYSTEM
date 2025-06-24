@@ -290,10 +290,23 @@ const applyLeave = async (req, res) => {
   }
 };
 
-const getAllLeaves = async (req,res) => {
+const getAllLeaves = async (req, res) => {
   try {
     const leaves = await Leave.find();
     res.json({ leaves });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const withdrawLeave = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ message: "id is required" });
+    }
+    await Leave.findByIdAndDelete(id);
+    res.status(200).json({ message: "Leave Deleted Successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -306,4 +319,5 @@ module.exports = {
   getEmployee,
   applyLeave,
   getAllLeaves,
+  withdrawLeave,
 };

@@ -4,6 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import config from "../../config";
 import Loader from "../../components/Loader";
 import Alert from "../../components/Alert";
+import { Trash2 } from "lucide-react";
 
 const LeaveRequests = ({ user }) => {
   const [leaves, setLeaves] = useState([]);
@@ -115,6 +116,35 @@ const LeaveRequests = ({ user }) => {
     }
   };
 
+  const handleWithdrawLeaveRequest = async (id) => {
+    if (!id) return;
+    let confirmed = confirm("Do You Want To Widthdraw Your Leave?");
+    if (!confirmed) return;
+    try {
+      setLoader(true);
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/employees/leave/delete/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setAlert({ type: "success", message: data.message });
+        fetchLeaves();
+      } else {
+        setAlert({ type: "error", message: data.message });
+      }
+    } catch (err) {
+      setAlert({ type: "error", message: err.message });
+    } finally {
+      setLoader(false);
+    }
+  };
+
   useEffect(() => {
     fetchLeaves();
   }, []);
@@ -210,7 +240,7 @@ const LeaveRequests = ({ user }) => {
               <button
                 onClick={handleApply}
                 disabled={loader}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
+                className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md"
               >
                 {loader ? "Applying..." : "Apply Leave"}
               </button>
@@ -232,6 +262,7 @@ const LeaveRequests = ({ user }) => {
                   <th className="px-6 py-3 border-b">Type</th>
                   <th className="px-6 py-3 border-b">Reason</th>
                   <th className="px-6 py-3 border-b">Status</th>
+                  <th className="px-6 py-3 border-b">Withdraw Leave Request</th>
                 </tr>
               </thead>
               <tbody className="bg-white">
@@ -254,6 +285,14 @@ const LeaveRequests = ({ user }) => {
                       >
                         {leave.status}
                       </span>
+                    </td>
+
+                    <td className="px-6 py-4 border-b flex justify-center ">
+                      <Trash2
+                        className="cursor-pointer text-red-800 text-xl hover:scale-105"
+                        onClick={() => handleWithdrawLeaveRequest(leave._id)}
+                        size={20}
+                      />
                     </td>
                   </tr>
                 ))}
