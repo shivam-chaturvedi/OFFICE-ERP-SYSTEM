@@ -37,20 +37,17 @@ import ManageClients from "./pages/admin/ManageClients";
 import ManageTasks from "./pages/admin/ManageTasks";
 import ManageTeams from "./pages/admin/ManageTeams";
 import ManageDepartments from "./pages/admin/ManageDepartments";
-import Accounts from './pages/Admin/Accounts/Accounts';
-
-
-
+import Accounts from "./pages/Admin/Accounts/Accounts";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
 
-  useEffect(() => {
-    setUser({ name: "TestUser", role: "admin" });
-    setLoading(false);
-  }, []);
+  // useEffect(() => {
+  //   setUser({ name: "TestUser", role: "admin" });
+  //   setLoading(false);
+  // }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -240,14 +237,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
-  path="/accounts"
-  element={
-    <ProtectedRoute role="admin">
-      <Accounts />
-    </ProtectedRoute>
-  }
-/>
+          path="/accounts"
+          element={
+            <ProtectedRoute role="admin">
+              <Accounts />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Employee Routes */}
         <Route
           path="/profile"
