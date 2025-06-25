@@ -13,9 +13,9 @@ const teamSchema = new mongoose.Schema({
     ref: "Department",
     required: true,
   },
-  members: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }], 
+  members: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
   leader: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-  active_project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+  active_project: { type: mongoose.Schema.Types.ObjectId, ref: "Task" },
   active: { type: Boolean, default: true },
 });
 

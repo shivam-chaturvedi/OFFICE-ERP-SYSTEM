@@ -76,6 +76,12 @@ const taskSchema = new mongoose.Schema(
           max: 100,
           default: 0,
         },
+        description: {
+          type: String,
+          required: true,
+          trim: true,
+          lowercase: true,
+        },
       },
     ],
   },

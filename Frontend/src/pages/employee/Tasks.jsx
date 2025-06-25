@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Search,
   Filter,
@@ -16,6 +16,8 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import config from "../../config";
+import TeamManagementPage from "./components/TeamManagementPage";
 
 const Tasks = ({ user }) => {
   const [activeTab, setActiveTab] = useState("My Tasks");
@@ -26,49 +28,12 @@ const Tasks = ({ user }) => {
   const [modalStatus, setModalStatus] = useState("");
   const [modalComments, setModalComments] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [employee, setEmployee] = useState({});
+  const [isLeader, setIsLeader] = useState(false);
+  const [tasks, setTasks] = useState([]);
+  const [members, setMembers] = useState([]);
+
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Q4 Marketing Campaign Strategy",
-      description:
-        "Develop comprehensive marketing strategy for Q4 product launch",
-      status: "In Progress",
-      priority: "High",
-      progress: 65,
-      dueDate: "2/15/2024",
-      daysOverdue: -494,
-      subtasks: [
-        { name: "Market Research", progress: 100 },
-        { name: "Content Creation", progress: 80 },
-      ],
-      totalSubtasks: 3,
-    },
-    {
-      id: 2,
-      title: "Customer Feedback Analysis",
-      description: "Analyze customer feedback from recent product releases",
-      status: "To Do",
-      priority: "Medium",
-      progress: 0,
-      dueDate: "1/30/2024",
-      daysOverdue: -510,
-      subtasks: [],
-      totalSubtasks: 0,
-    },
-    {
-      id: 3,
-      title: "Team Performance Review",
-      description: "Conduct quarterly performance reviews for team members",
-      status: "Done",
-      priority: "High",
-      progress: 100,
-      dueDate: "1/25/2024",
-      daysOverdue: -515,
-      subtasks: [],
-      totalSubtasks: 0,
-    },
-  ]);
 
   const stats = [
     {
@@ -201,6 +166,42 @@ const Tasks = ({ user }) => {
       closeUpdateModal();
     }
   };
+
+  const fetchEmployee = async () => {
+    try {
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/employees/${user._id}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setEmployee(data.employee);
+        if (data.employee?.tasks?.length > 0) {
+          setTasks(data.employee.tasks);
+          if (data.employee.tasks[0].team.leader == user._id) {
+            setIsLeader(true);
+          }
+        }
+      }
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployee();
+  }, [user]);
+
+  // useEffect(() => {
+  //   if (employee?.tasks?.length > 0) {
+  //     setMembers(employee?.tasks[0]?.team?.members);
+  //   }
+  // }, [employee]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -400,13 +401,25 @@ const Tasks = ({ user }) => {
       {/* Task Cards */}
       <div className="px-6 pb-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {tasks.map((task) => (
+          {tasks.map((task, idx) => (
             <div
-              key={task.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              title="Select Task"
+              onClick={() => {
+                if (selectedTask?._id == task._id) {
+                  setSelectedTask(null);
+                } else {
+                  setSelectedTask(task);
+                }
+              }}
+              key={task._id + idx}
+              className={`cursor-pointer rounded-lg shadow-sm border border-gray-200 p-6 ${
+                selectedTask?._id == task._id
+                  ? "bg-green-200 text-green-900"
+                  : "bg-white"
+              }`}
             >
               <div className="flex items-start justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="uppercase text-lg font-semibold text-gray-900">
                   {task.title}
                 </h3>
                 <button className="text-gray-400 hover:text-gray-600">
@@ -414,9 +427,9 @@ const Tasks = ({ user }) => {
                 </button>
               </div>
 
-              <p className="text-gray-600 text-sm mb-4">{task.description}</p>
+              <p className="capitalize text-sm mb-4">{task.description}</p>
 
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="capitalize flex items-center space-x-2 mb-4">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
                     task.status
@@ -438,7 +451,7 @@ const Tasks = ({ user }) => {
                   <span>Progress</span>
                   <span>{task.progress}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-400 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${task.progress}%` }}
@@ -449,15 +462,29 @@ const Tasks = ({ user }) => {
               <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
-                  <span>Due: {task.dueDate}</span>
+                  <span>Due: {new Date(task.deadline).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
-                  <span>{task.daysOverdue} days</span>
+                  <span>
+                    {(() => {
+                      const dueDate = new Date(task.deadline);
+                      const today = new Date();
+                      dueDate.setHours(0, 0, 0, 0);
+                      today.setHours(0, 0, 0, 0);
+                      const msInDay = 1000 * 60 * 60 * 24;
+                      const daysOverdue = Math.floor(
+                        (today - dueDate) / msInDay
+                      );
+                      return daysOverdue > 0
+                        ? `${daysOverdue} days overdue`
+                        : "On time";
+                    })()}
+                  </span>
                 </div>
               </div>
 
-              {task.subtasks.length > 0 && (
+              {task?.subtasks?.length > 0 && (
                 <div className="mb-4">
                   <p className="text-sm font-medium text-gray-700 mb-2">
                     Subtasks ({task.subtasks.length})
@@ -471,11 +498,6 @@ const Tasks = ({ user }) => {
                       <span>{subtask.progress}%</span>
                     </div>
                   ))}
-                  {task.totalSubtasks > task.subtasks.length && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      +{task.totalSubtasks - task.subtasks.length} more
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -493,72 +515,6 @@ const Tasks = ({ user }) => {
         </div>
       </div>
     </>
-  );
-
-  const renderTeamManagement = () => (
-    <div className="px-6 py-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Team Members</h2>
-        <button className="flex items-center space-x-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
-          <Plus className="w-4 h-4" />
-          <span>Assign Task</span>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {teamMembers.map((member) => (
-          <div
-            key={member.id}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-          >
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mr-4">
-                <User className="w-6 h-6 text-gray-600" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {member.name}
-                </h3>
-                <p className="text-gray-600 text-sm">{member.role}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2 mb-6">
-              <p className="text-sm text-gray-600">
-                Experience: {member.experience}
-              </p>
-              <p className="text-sm text-gray-600">Email: {member.email}</p>
-            </div>
-
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {member.currentTasks}
-                </div>
-                <div className="text-sm text-gray-600">Current Tasks</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {member.completedTasks}
-                </div>
-                <div className="text-sm text-gray-600">Completed</div>
-              </div>
-            </div>
-
-            <div className="flex space-x-2">
-              <button className="flex-1 py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                <span className="text-sm font-medium text-gray-700">
-                  View Tasks
-                </span>
-              </button>
-              <button className="flex-1 py-2 px-4 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
-                <span className="text-sm font-medium">Assign Task</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 
   const renderResources = () => (
@@ -726,7 +682,9 @@ const Tasks = ({ user }) => {
       case "My Tasks":
         return renderMyTasks();
       case "Team Management":
-        return renderTeamManagement();
+        return (
+          <TeamManagementPage employee={employee} selectedTask={selectedTask} />
+        );
       case "Resources":
         return renderResources();
       case "Analytics":

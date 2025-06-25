@@ -160,7 +160,7 @@ const uploadProfilePicture = async (req, res) => {
     });
 
     req.pipe(busboy);
-  } catch (err) {
+  } catch (err) { 
     console.log(err.message)
     res.status(500).json({ message: err.message });
   }

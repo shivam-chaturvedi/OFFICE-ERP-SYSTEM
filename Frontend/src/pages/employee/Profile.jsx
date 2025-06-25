@@ -156,8 +156,8 @@ const Profile = ({ user }) => {
             <p className="text-sm text-gray-500">Task Assigned</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
-            <p className="text-xl font-bold text-gray-800">10 days</p>
-            <p className="text-sm text-gray-500">Leave Balance</p>
+            <p className={`text-xl font-bold text-gray-800 ${employee.status=="Active"?"text-green-600":"text-red-600"}`}>{employee.status}</p>
+            <p className="text-sm text-gray-500">Status</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
             <p className="text-xl font-bold text-gray-800">

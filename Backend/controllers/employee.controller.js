@@ -242,23 +242,30 @@ const editEmployee = async (req, res) => {
 
 const getEmployee = async (req, res) => {
   const id = req.params.id;
-  const employee = await Employee.findById(id)
-    .populate({
-      path: "user",
-      select: "name profile_image",
-    })
-    .populate({
-      path: "department",
-      select: "name",
-    })
-    .populate({
-      path: "tasks",
-      populate: {
-        path: "team",
-      },
-    });
+  if (!id) {
+    return res.status(400).json({ message: "Id is required" });
+  }
+  try {
+    const employee = await Employee.findById(id)
+      .populate({
+        path: "user",
+        select: "name profile_image",
+      })
+      .populate({
+        path: "department",
+        select: "name",
+      })
+      .populate({
+        path: "tasks",
+        populate: {
+          path: "team",
+        },
+      });
 
-  res.json({ employee });
+    res.json({ employee });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 const applyLeave = async (req, res) => {

@@ -4,11 +4,14 @@ import EditEmployeeModal from "../../components/EditEmployeeModal";
 import AddEmployeeModal from "../../components/AddEmployeeModal";
 import Loader from "../../components/Loader";
 import Alert from "../../components/Alert";
+import EmployeeAccountModal from "../../components/EmployeeAccountModal";
+import { Banknote } from "lucide-react";
 
 export default function ManageEmployees() {
   const [employees, setEmployees] = useState([]);
   const [editModal, setEditModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showAccountModal, setShowAccountModal] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
@@ -342,6 +345,16 @@ export default function ManageEmployees() {
                       </svg>
                       Edit
                     </button>
+
+                    <button
+                      onClick={() => {
+                        setShowAccountModal(emp);
+                      }}
+                      className="cursor-pointer flex items-center w-full text-left py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <Banknote className="w-5 h-5 mr-1 text-gray-600" />
+                      Bank Details
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -572,9 +585,26 @@ export default function ManageEmployees() {
               message: "Employee Updated successfully!",
             });
           }}
-          
           departments={departmentNames}
           selectedEmployee={selectedEmployee}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {showAccountModal && (
+        <EmployeeAccountModal
+          onClose={() => {
+            setShowAccountModal(false);
+          }}
+          onSuccess={() => {
+            setShowAccountModal(false);
+            fetchEmployees();
+            setAlert({
+              type: "success",
+              message: "Employee Account Information Updated successfully!",
+            });
+          }}
+          employee={showAccountModal}
         />
       )}
 

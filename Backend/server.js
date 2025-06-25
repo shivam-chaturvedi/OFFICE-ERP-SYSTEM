@@ -7,6 +7,7 @@ const deptRoutes = require("./routes/department.routes");
 const teamRoutes = require("./routes/team.routes");
 const taskRoutes = require("./routes/task.routes");
 const path = require("path");
+const accountRoutes = require("./routes/account.routes");
 
 const authMiddleware = require("./middlewares/auth.middleware");
 require("dotenv").config();
@@ -58,7 +59,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/departments", deptRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/tasks", taskRoutes);
-
+app.use("/api/accounts", accountRoutes);
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port localhost:${PORT}`);

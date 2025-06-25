@@ -422,7 +422,7 @@ const ManageUsers = () => {
                     <div className="uppercase text-xl font-semibold text-purple-400 ">
                       {
                         employees.find((emp) => emp._id === user._id)
-                          ?.department?.name
+                          ?.department?.name || "N/A"
                       }
                     </div>
                   </td>
