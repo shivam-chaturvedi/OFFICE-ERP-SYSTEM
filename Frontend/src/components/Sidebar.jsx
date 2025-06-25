@@ -79,7 +79,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
       { icon: <Users size={20} />, label: "Manage Teams", to: "/manage-teams" },
       { icon: <UserCog size={20} />, label: "Manage Employees", to: "/manage-employees" },
       { icon: <UserPlus size={20} />, label: "Manage Trainees", to: "/manage-trainees" },
-      { icon: <Calculator size={20} />, label: "Accounts", to: "/accounts" }, 
+      { icon: <Calculator size={20} />, label: "Manage Accounts", to: "/accounts" }, 
     ],
     adminSub: [
       { icon: <CalendarCheck size={20} />, label: "Manage Leaves", to: "/manage-leaves" },

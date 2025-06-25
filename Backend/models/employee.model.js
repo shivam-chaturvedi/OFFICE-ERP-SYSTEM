@@ -14,7 +14,7 @@ const employeeSchema = new mongoose.Schema(
     domain: { type: String },
     certifications: [{ name: String, issued_by: String, date: Date }],
     tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
-    
+
     // Compensation
     salary: {
       type: Map,
@@ -39,6 +39,11 @@ const employeeSchema = new mongoose.Schema(
         uploaded_at: { type: Date, default: Date.now },
       },
     ],
+
+    account: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Account",
+    },
   },
   { timestamps: true }
 );

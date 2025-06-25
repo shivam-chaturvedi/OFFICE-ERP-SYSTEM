@@ -33,7 +33,8 @@ const Home = ({ user, setUser }) => {
                 })}
             </div>
             <h1 className="capitalize text-2xl font-bold text-gray-800">
-              Welcome, <span className="text-yellow-600">{user?.name || "User"}!</span>
+              Welcome,{" "}
+              <span className="text-yellow-600">{user?.name || "User"}!</span>
             </h1>
             {user.roles?.length > 1 && (
               <h2 className="text-xl shadow-lg shadow-amber-200 w-full max-w-sm mt-2 uppercase  mb-2 font-bold text-yellow-600">
@@ -137,6 +138,13 @@ const Home = ({ user, setUser }) => {
                   className={buttonStyle}
                 >
                   Salary Details
+                </button>
+
+                <button
+                  onClick={() => navigate("/accounts")}
+                  className={buttonStyle}
+                >
+                  Manage Accounts
                 </button>
               </div>
             </>

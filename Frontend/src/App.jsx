@@ -37,7 +37,7 @@ import ManageClients from "./pages/admin/ManageClients";
 import ManageTasks from "./pages/admin/ManageTasks";
 import ManageTeams from "./pages/admin/ManageTeams";
 import ManageDepartments from "./pages/admin/ManageDepartments";
-import Accounts from "./pages/Admin/Accounts/Accounts";
+import Accounts from "./pages/admin/accounts/Accounts";
 
 function App() {
   const [user, setUser] = useState(null);

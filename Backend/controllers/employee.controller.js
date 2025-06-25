@@ -123,7 +123,10 @@ const addEmployee = async (req, res) => {
 const getAllEmployees = async (req, res) => {
   const employees = await Employee.find()
     .populate("user")
-    .populate("department", "name");
+    .populate("department", "name")
+    .populate({
+      path: "account",
+    });
   res.json({ employees });
 };
 
@@ -260,6 +263,9 @@ const getEmployee = async (req, res) => {
         populate: {
           path: "team",
         },
+      })
+      .populate({
+        path: "account",
       });
 
     res.json({ employee });

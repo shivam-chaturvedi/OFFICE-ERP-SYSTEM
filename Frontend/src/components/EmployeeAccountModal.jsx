@@ -24,13 +24,13 @@ const indianBanks = [
 export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
   const [form, setForm] = useState({
     employee: employee._id,
-    bankName: "",
-    bankAccountNo: "",
-    bankIfscCode: "",
-    bank_location: "",
-    pan: "",
-    aadhar: "",
-    esiNo: "",
+    bankName: employee?.account?.bankName || "",
+    bankAccountNo: employee?.account?.bankAccountNo || "",
+    bankIfscCode: employee?.account?.bankIfscCode || "",
+    bank_location: employee?.account?.bank_location || "",
+    pan: employee?.account?.pan || "",
+    aadhar: employee?.account?.aadhar || "",
+    esiNo: employee?.account?.esiNo || "",
   });
 
   const [loader, setLoader] = useState(false);
