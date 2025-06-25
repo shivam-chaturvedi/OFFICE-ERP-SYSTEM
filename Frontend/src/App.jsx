@@ -37,6 +37,10 @@ import ManageClients from "./pages/admin/ManageClients";
 import ManageTasks from "./pages/admin/ManageTasks";
 import ManageTeams from "./pages/admin/ManageTeams";
 import ManageDepartments from "./pages/admin/ManageDepartments";
+import Accounts from './pages/Admin/Accounts/Accounts';
+
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -44,7 +48,7 @@ function App() {
   const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
-    setUser({ name: "TestUser", role: "employee" });
+    setUser({ name: "TestUser", role: "admin" });
     setLoading(false);
   }, []);
 
@@ -236,7 +240,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+        <Route
+  path="/accounts"
+  element={
+    <ProtectedRoute role="admin">
+      <Accounts />
+    </ProtectedRoute>
+  }
+/>
         {/* Employee Routes */}
         <Route
           path="/profile"
