@@ -20,7 +20,23 @@ const accountSchema = new mongoose.Schema(
     uan: { type: String, unique: true, sparse: true },
     esiNo: { type: String, unique: true, sparse: true },
     bank_location: String,
- 
+
+    // One-Time Tax Exemption & Income Tax Structure
+    taxExemptions: {
+      sec10: Number,
+      sec16: Number,
+      sec80C: Number,
+      sec80CCE: Number,
+      sec6A: Number,
+    },
+    projectedIncomeTax: Number, 
+    grossSalary: Number,
+    totalIncome: Number,
+    taxStructure: {
+      base: Number,
+      educationCess: Number,
+    },
+
     // Monthly salary records
     salaryRecords: [
       {
@@ -30,44 +46,27 @@ const accountSchema = new mongoose.Schema(
         lopDays: Number,
         arrearDays: Number,
         daysInMonth: Number,
+
         earnings: { type: Map, of: Number },
         deductions: { type: Map, of: Number },
         netPay: Number,
 
         incomeTax: {
           tillDate: Number,
-          projected: Number,
-          exemptions: {
-            sec10: Number,
-            sec16: Number,
-            sec80C: Number,
-            sec80CCE: Number,
-            sec6A: Number,
-          },
-          grossSalary: Number,
-          totalIncome: Number,
-          tax: {
-            base: Number,
-            educationCess: Number,
-            totalTax: Number,
-            deductedTillDate: Number,
-            currentMonth: Number,
-            balancePayable: Number,
-          },
+          deductedTillDate: Number,
+          currentMonth: Number,
+          balancePayable: Number,
         },
 
-        hraExemption: [
-          {
-            month: String,
-            basicPaid: Number,
-            rentPaid: Number,
-            isMetro: Boolean,
-            hra: Number,
-            rentLess10Percent: Number,
-            percentOfBasic: Number,
-            exemption: Number,
-          },
-        ],
+        hraExemption: {
+          basicPaid: Number,
+          rentPaid: Number,
+          isMetro: Boolean,
+          hra: Number,
+          rentLess10Percent: Number,
+          percentOfBasic: Number,
+          exemption: Number,
+        },
 
         taxDeductedBreakup: [
           {

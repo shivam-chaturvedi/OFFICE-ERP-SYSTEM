@@ -44,6 +44,10 @@ const employeeSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Account",
     },
+    payroll: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

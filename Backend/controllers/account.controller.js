@@ -23,74 +23,73 @@ const addOrUpdateAccount = async (req, res) => {
 
     let account = await Account.findOne({ employee: formData.employee });
 
+    const staticFields = {
+      bankName: formData.bankName ?? account.bankName ?? "",
+      bankAccountNo: formData.bankAccountNo ?? account.bankAccountNo ?? "",
+      bankIfscCode: formData.bankIfscCode ?? account.bankIfscCode ?? "",
+      bank_location: formData.bank_location ?? account.bank_location ?? "",
+      pan: formData.pan ?? account.pan ?? "",
+      aadhar: formData.aadhar ?? account.aadhar ?? "",
+      pfNo: formData.pfNo ?? account.pfNo ?? "",
+      uan: formData.uan ?? account.uan ?? "",
+      esiNo: formData.esiNo ?? account.esiNo ?? "",
+      taxExemptions: formData.taxExemptions ??
+        account.taxExemptions ?? {
+          sec10: 0,
+          sec16: 0,
+          sec80C: 0,
+          sec80CCE: 0,
+          sec6A: 0,
+        },
+      projectedIncomeTax:
+        formData.projectedIncomeTax ?? account.projectedIncomeTax ?? 0,
+      grossSalary: formData.grossSalary ?? account.grossSalary ?? 0,
+      totalIncome: formData.totalIncome ?? account.totalIncome ?? 0,
+      taxStructure: formData.taxStructure ??
+        account.taxStructure ?? {
+          base: 0,
+          educationCess: 0,
+        },
+    };
+
+    const newSalaryRecord = {
+      month: formData.month,
+      year: formData.year,
+      paidDays: formData.paidDays,
+      lopDays: formData.lopDays,
+      arrearDays: formData.arrearDays,
+      daysInMonth: formData.daysInMonth,
+      earnings: formData.earnings || {},
+      deductions: formData.deductions || {},
+      netPay: formData.netPay,
+      incomeTax: formData.incomeTax || {},
+      hraExemption: formData.hraExemption || {},
+      taxDeductedBreakup: formData.taxDeductedBreakup || [],
+    };
+
     if (account) {
-      // update existing account fields
-      account.bankName = formData.bankName || account.bankName;
-      account.bankAccountNo = formData.bankAccountNo || account.bankAccountNo;
-      account.bankIfscCode = formData.bankIfscCode || account.bankIfscCode;
-      account.bank_location = formData.bank_location || account.bank_location;
-      account.pan = formData.pan || account.pan;
-      account.aadhar = formData.aadhar || account.aadhar;
-      account.pfNo = formData.pfNo || account.pfNo;
-      account.uan = formData.uan || account.uan;
-      account.esiNo = formData.esiNo || account.esiNo;
-
-      account.month = formData.month || account.month;
-      account.year = formData.year || account.year;
-      account.paidDays = formData.paidDays || account.paidDays;
-      account.lopDays = formData.lopDays || account.lopDays;
-      account.arrearDays = formData.arrearDays || account.arrearDays;
-      account.daysInMonth = formData.daysInMonth || account.daysInMonth;
-
-      account.earnings = formData.earnings || account.earnings;
-      account.deductions = formData.deductions || account.deductions;
-      account.netPay = formData.netPay || account.netPay;
-
-      account.incomeTax = formData.incomeTax || account.incomeTax;
-      account.hraExemption = formData.hraExemption || account.hraExemption;
-      account.taxDeductedBreakup =
-        formData.taxDeductedBreakup || account.taxDeductedBreakup;
+      // Update static fields
+      Object.assign(account, staticFields);
     } else {
-      // create new account
+      // Create new account
       account = new Account({
         employee: formData.employee,
-        bankName: formData.bankName,
-        bankAccountNo: formData.bankAccountNo,
-        bankIfscCode: formData.bankIfscCode,
-        bank_location: formData.bank_location,
-        pan: formData.pan,
-        aadhar: formData.aadhar,
-        pfNo: formData.pfNo,
-        uan: formData.uan,
-        esiNo: formData.esiNo,
-
-        month: formData.month,
-        year: formData.year,
-        paidDays: formData.paidDays,
-        lopDays: formData.lopDays,
-        arrearDays: formData.arrearDays,
-        daysInMonth: formData.daysInMonth,
-
-        earnings: formData.earnings || {},
-        deductions: formData.deductions || {},
-        netPay: formData.netPay,
-
-        incomeTax: formData.incomeTax || {},
-        hraExemption: formData.hraExemption || [],
-        taxDeductedBreakup: formData.taxDeductedBreakup || [],
+        ...staticFields,
       });
     }
 
     await account.save();
+
+    emp.payroll = true;
+    await emp.save();
 
     return res
       .status(201)
       .json({ message: "Account details saved successfully", account });
   } catch (err) {
     if (err.code === 11000) {
-      const field = Object.keys(err.keyValue)[0]; // gets the field causing the duplicate
-      const value = err.keyValue[field]; // gets the value that caused conflict
-
+      const field = Object.keys(err.keyValue)[0];
+      const value = err.keyValue[field];
       return res.status(400).json({
         message: `Duplicate value for '${field}': '${value}'. This ${field} already exists for another employee.`,
       });
@@ -101,4 +100,24 @@ const addOrUpdateAccount = async (req, res) => {
   }
 };
 
-module.exports = { addOrUpdateAccount };
+const removeEmployeeFromPayroll = async (req, res) => {
+  try {
+    const emp_id = req.params.emp_id;
+    let emp = null;
+    if (emp_id) {
+      emp = await Employee.findById(emp_id);
+    }
+    if (!emp_id || !emp) {
+      return res.status(400).json({ message: "emp id is invalid" });
+    }
+    emp.payroll = false;
+    await emp.save();
+    res
+      .status(200)
+      .json({ message: `Employee Removed from payroll Successfully` });
+  } catch (err) {
+    console.error("Error :", err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+module.exports = { addOrUpdateAccount, removeEmployeeFromPayroll };

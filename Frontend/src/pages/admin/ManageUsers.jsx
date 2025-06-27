@@ -381,9 +381,9 @@ const ManageUsers = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50">
-                  <div className="text-lg uppercase font-bold text-gray-500 mt-4 ml-2">
+                  <td className="text-lg uppercase font-bold text-gray-500 mt-4 ml-2">
                     #{user._id}
-                  </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
