@@ -1,6 +1,15 @@
 const Account = require("../models/account.model");
 const Employee = require("../models/employee.model");
 
+function convertToSalaryObject(arr) {
+  const salaryObj = {};
+  arr.forEach(({ type, amount }) => {
+    if (type && amount !== "") {
+      salaryObj[type] = Number(amount);
+    }
+  });
+  return salaryObj;
+}
 const addOrUpdateAccount = async (req, res) => {
   try {
     const formData = req.body;
@@ -50,21 +59,6 @@ const addOrUpdateAccount = async (req, res) => {
           base: 0,
           educationCess: 0,
         },
-    };
-
-    const newSalaryRecord = {
-      month: formData.month,
-      year: formData.year,
-      paidDays: formData.paidDays,
-      lopDays: formData.lopDays,
-      arrearDays: formData.arrearDays,
-      daysInMonth: formData.daysInMonth,
-      earnings: formData.earnings || {},
-      deductions: formData.deductions || {},
-      netPay: formData.netPay,
-      incomeTax: formData.incomeTax || {},
-      hraExemption: formData.hraExemption || {},
-      taxDeductedBreakup: formData.taxDeductedBreakup || [],
     };
 
     if (account) {
@@ -120,4 +114,53 @@ const removeEmployeeFromPayroll = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
-module.exports = { addOrUpdateAccount, removeEmployeeFromPayroll };
+
+const addMonthlySalaryOfEmployee = async (req, res) => {
+  try {
+    const emp_id = req.params.emp_id;
+    const formData = req.body;
+
+    const emp = await Employee.findById(emp_id);
+    if (!emp) {
+      return res
+        .status(400)
+        .json({ message: "Employee Not Exist With Given Id" });
+    }
+
+    let account = await Account.findOne({ employee: emp._id });
+    if (!account) {
+      return res
+        .status(400)
+        .json({ message: "Account not exists for selected employee" });
+    }
+
+    const salaryRecord = {
+      month: formData.month,
+      year: formData.year,
+      paidDays: formData.paidDays,
+      lopDays: formData.lopDays,
+      arrearDays: formData.arrearDays,
+      daysInMonth: formData.daysInMonth,
+      earnings: convertToSalaryObject(formData.earnings) || {},
+      deductions: convertToSalaryObject(formData.deductions) || {},
+      netPay: formData.netPay,
+      incomeTax: formData.incomeTax || {},
+      hraExemption: formData.hraExemption || {},
+      taxDeductedBreakup: formData.taxDeductedBreakup || [],
+    };
+
+    account.salaryRecords.push(salaryRecord);
+ 
+    await account.save();
+
+    res.status(200).json({ message: "Salary Info Updated Successfully " });
+  } catch (err) {
+    console.error("Error :", err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+module.exports = {
+  addOrUpdateAccount,
+  removeEmployeeFromPayroll,
+  addMonthlySalaryOfEmployee,
+};

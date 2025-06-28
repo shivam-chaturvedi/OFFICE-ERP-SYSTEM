@@ -603,7 +603,7 @@ const EmployeeSalaryDashboard = () => {
             fetchEmployees();
             setAlert({
               type: "success",
-              message: "Employee Payroll Info Updated Successfully",
+              message: "Salary Info Updated Successfully ",
             });
             setViewMonthlyFinanceAccountModal(null);
           }}

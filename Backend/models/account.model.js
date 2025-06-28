@@ -29,7 +29,7 @@ const accountSchema = new mongoose.Schema(
       sec80CCE: Number,
       sec6A: Number,
     },
-    projectedIncomeTax: Number, 
+    projectedIncomeTax: Number,
     grossSalary: Number,
     totalIncome: Number,
     taxStructure: {
