@@ -3,7 +3,7 @@ import { PlusCircle, Edit3, CheckCircle2, X } from "lucide-react";
 import Alert from "../components/Alert";
 import { useEffect } from "react";
 
-function SalaryInput({ salary, setSalary}) {
+function SalaryInput({ salary, setSalary, title = "Salary Breakdown" }) {
   const [salaryComponents, setSalaryComponents] = useState([]);
   const [editMode, setEditMode] = useState(true);
   const [alert, setAlert] = useState({});
@@ -36,7 +36,7 @@ function SalaryInput({ salary, setSalary}) {
     let flag = true;
     const salaryObj = {};
     salaryComponents.forEach((component) => {
-      if (component.type && component.amount) {
+      if (component.type ) {
         salaryObj[component.type] = Number(component.amount);
       } else {
         setAlert({ type: "error", message: "Please Fill All Fields!" });
@@ -51,10 +51,10 @@ function SalaryInput({ salary, setSalary}) {
   };
 
   return (
-    <div className="p-4 border rounded-lg bg-white shadow-sm w-full max-w-xl">
+    <div className="p-4 border rounded-lg bg-white shadow-sm w-full max-w-xl mt-4">
       {alert && <Alert alert={alert} setAlert={setAlert} />}
       <div className="flex justify-between items-center mb-4">
-        <label className="text-lg font-semibold">Salary Breakdown</label>
+        <label className="text-lg font-semibold">{title}</label>
         {!editMode && (
           <button
             onClick={() => setEditMode(true)}

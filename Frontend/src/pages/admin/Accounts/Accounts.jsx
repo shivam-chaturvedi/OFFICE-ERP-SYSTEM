@@ -13,7 +13,10 @@ import {
   Trash2,
 } from "lucide-react";
 import ViewSalaryModal from "./components/ViewSalaryModal";
-import { AddToPayrollFinanceAccountModal } from "../../../components/FinanceAccountModal";
+import {
+  AddToPayrollFinanceAccountModal,
+  MonthlyFinanceAccountModal,
+} from "../../../components/FinanceAccountModal";
 import config from "../../../config";
 import Loader from "../../../components/Loader";
 import Alert from "../../../components/Alert";
@@ -31,6 +34,8 @@ const EmployeeSalaryDashboard = () => {
   const [loader, setLoader] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [alert, setAlert] = useState({});
+  const [viewMonthlyFinanceAccountModal, setViewMonthlyFinanceAccountModal] =
+    useState(null);
 
   const fetchEmployees = async () => {
     try {
@@ -393,39 +398,12 @@ const EmployeeSalaryDashboard = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() =>
-                          updateEmployeeStatus(employee._id, "Processed")
+                          setViewMonthlyFinanceAccountModal(employee)
                         }
-                        className={`cursor-pointer flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getStatusColor(
-                          employee.status
-                        )}`}
+                        className={`cursor-pointer bg-green-400 text-black  rounded-xl p-2 font-extralight font-sans`}
                       >
-                        {getStatusIcon(employee.status)}
-                        {employee.status}
+                        Mark Payed
                       </button>
-                      {employee.status !== "Processed" && (
-                        <div className="flex gap-1">
-                          {employee.status !== "Pending" && (
-                            <button
-                              onClick={() =>
-                                updateEmployeeStatus(employee.id, "Pending")
-                              }
-                              className="cursor-pointer px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"
-                              title="Mark as Pending"
-                            >
-                              <Clock className="w-3 h-3" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() =>
-                              updateEmployeeStatus(employee._id, "Processed")
-                            }
-                            className="cursor-pointer px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200"
-                            title="Mark as Processed"
-                          >
-                            <Check className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                   <td className="p-4">
@@ -613,6 +591,21 @@ const EmployeeSalaryDashboard = () => {
               message: "Employee Payroll Info Updated Successfully",
             });
             setShowAccountModal(null);
+          }}
+        />
+      )}
+
+      {viewMonthlyFinanceAccountModal && (
+        <MonthlyFinanceAccountModal
+          employee={viewMonthlyFinanceAccountModal}
+          onClose={() => setViewMonthlyFinanceAccountModal(null)}
+          onSuccess={() => {
+            fetchEmployees();
+            setAlert({
+              type: "success",
+              message: "Employee Payroll Info Updated Successfully",
+            });
+            setViewMonthlyFinanceAccountModal(null);
           }}
         />
       )}

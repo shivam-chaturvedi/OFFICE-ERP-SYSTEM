@@ -5,11 +5,30 @@ import Alert from "../components/Alert";
 import SalaryInput from "./SalaryInput";
 import { useEffect } from "react";
 
-function AddEmployeeModal({ onClose, onSuccess ,departments}) {
+function AddEmployeeModal({ onClose, onSuccess, departments }) {
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
-  const [salary, setSalary] = useState([{type:"basic",amount:""}]);
-  
+
+  const defaultEarnings = [
+    "basic",
+    "hra",
+    "conveyance",
+    "lunch",
+    "specialAllowance",
+    "medicalReimbursement",
+    "vehicleWheelerAllowance",
+    "lta",
+    "vehicleMaintenance",
+    "otherAllowance",
+    "cityCompensation",
+    "fuelReimbursement",
+  ];
+
+  const getDefaultComponents = (fields, salaryObj = {}) =>
+    fields.map((key) => ({ type: key, amount: salaryObj[key] || 0 }));
+
+  const [salary, setSalary] = useState(getDefaultComponents(defaultEarnings));
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -41,7 +60,6 @@ function AddEmployeeModal({ onClose, onSuccess ,departments}) {
     status: "Active",
   });
 
-  
   const shifts = ["Morning", "Evening", "Night", "General"];
   const statusOptions = ["Active", "On Leave", "Resigned", "Terminated"];
   const genderOptions = ["Male", "Female", "Other"];
@@ -61,7 +79,7 @@ function AddEmployeeModal({ onClose, onSuccess ,departments}) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    form.salary=salary;
+    form.salary = salary;
     try {
       setLoader(true);
       const res = await fetch(`${config.BACKEND_URL}/api/employees/add`, {
@@ -95,9 +113,9 @@ function AddEmployeeModal({ onClose, onSuccess ,departments}) {
     </label>
   );
 
-  useEffect(()=>{
-    console.log(salary)
-  },[salary])
+  useEffect(() => {
+    console.log(salary);
+  }, [salary]);
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50 p-4">
@@ -289,14 +307,14 @@ function AddEmployeeModal({ onClose, onSuccess ,departments}) {
             <Label required>Department</Label>
             <select
               name="department"
-              value={form.department}  
+              value={form.department}
               onChange={handleChange}
               required
               className="employee-form"
             >
               <option value="na">Select Department</option>
-              {departments.map((dept,idx) => (
-                <option key={dept._id+idx} value={dept.name}>
+              {departments.map((dept, idx) => (
+                <option key={dept._id + idx} value={dept.name}>
                   {dept.name}
                 </option>
               ))}
@@ -345,9 +363,9 @@ function AddEmployeeModal({ onClose, onSuccess ,departments}) {
             />
           </div>
 
-          <div>
+          <div className="w-[120%] z-50 mt-8">
             <Label required>Salary</Label>
-            <SalaryInput setSalary={setSalary} salary={salary}/>
+            <SalaryInput setSalary={setSalary} salary={salary} />
           </div>
 
           <div>
