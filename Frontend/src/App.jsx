@@ -38,16 +38,13 @@ import ManageTasks from "./pages/admin/ManageTasks";
 import ManageTeams from "./pages/admin/ManageTeams";
 import ManageDepartments from "./pages/admin/ManageDepartments";
 import Accounts from "./pages/admin/accounts/Accounts";
+import useIsMobile from "./hooks/useIsMobile";
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
-
-  useEffect(() => {
-    setUser({ name: "TestUser", role: "admin" });
-    setLoading(false);
-  }, []);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -86,6 +83,21 @@ function App() {
     verify();
   }, []);
 
+  if (isMobile) {
+    return (
+      <div className="block lg:hidden flex items-center justify-center h-screen px-4 text-center">
+        <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+          <h1 className="text-2xl font-semibold text-red-600 mb-2">
+            Mobile Not Supported
+          </h1>
+          <p className="text-gray-700">
+            Please switch to a desktop device. This site does not support mobile
+            view currently.
+          </p>
+        </div>
+      </div>
+    );
+  }
   if (loading) return <Loader />;
 
   const ProtectedRoute = ({ children, role }) => {

@@ -337,12 +337,14 @@ function EditEmployeeModal({
             <Label required>Department</Label>
             <select
               name="department"
-              value={form.department}
+              value={form.department?.name}
               onChange={handleChange}
               required
               className="employee-form"
             >
-              <option value="">Select Department</option>
+              <option value="na" disabled>
+                Select Department
+              </option>
 
               {departments.map((dept, idx) => (
                 <option
@@ -353,6 +355,7 @@ function EditEmployeeModal({
                   {dept.name}
                 </option>
               ))}
+              <option value="na">N/A For Now</option>
             </select>
           </div>
 

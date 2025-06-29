@@ -12,6 +12,7 @@ const accountRoutes = require("./routes/account.routes");
 const authMiddleware = require("./middlewares/auth.middleware");
 require("dotenv").config();
 
+
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const User = require("./models/user.model");

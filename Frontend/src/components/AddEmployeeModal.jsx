@@ -312,12 +312,15 @@ function AddEmployeeModal({ onClose, onSuccess, departments }) {
               required
               className="employee-form"
             >
-              <option value="na">Select Department</option>
+              <option value="na" disabled>
+                Select Department
+              </option>
               {departments.map((dept, idx) => (
                 <option key={dept._id + idx} value={dept.name}>
                   {dept.name}
                 </option>
               ))}
+              <option value="na">N/A For Now</option>
             </select>
           </div>
 
