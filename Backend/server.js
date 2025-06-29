@@ -44,7 +44,7 @@ mongoose
           phone: "1234567891",
           email: "admin@gmail.com",
           password: pass,
-        });
+        }); 
         console.log("Created Admin User " + adminUser);
       } catch (err) {
         console.log(err.message);
