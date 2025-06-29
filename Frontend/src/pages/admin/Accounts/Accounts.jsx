@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
   Download,
@@ -10,37 +10,19 @@ import {
   Clock,
   FileText,
   X,
+  Trash2,
 } from "lucide-react";
 import ViewSalaryModal from "./components/ViewSalaryModal";
-
+import {
+  AddToPayrollFinanceAccountModal,
+  MonthlyFinanceAccountModal,
+} from "../../../components/FinanceAccountModal";
+import config from "../../../config";
+import Loader from "../../../components/Loader";
+import Alert from "../../../components/Alert";
 
 const EmployeeSalaryDashboard = () => {
-  const [employees, setEmployees] = useState([
-    {
-      id: "EMP001",
-      name: "John Smith",
-      department: "IT",
-      designation: "Senior Developer",
-      netPay: 85000,
-      status: "Processed",
-    },
-    {
-      id: "EMP002",
-      name: "Sarah Johnson",
-      department: "Finance",
-      designation: "Finance Manager",
-      netPay: 95000,
-      status: "Pending",
-    },
-    {
-      id: "EMP003",
-      name: "Michael Brown",
-      department: "HR",
-      designation: "HR Executive",
-      netPay: 65000,
-      status: "Draft",
-    },
-  ]);
+  const [employees, setEmployees] = useState([]);
 
   const [showEmployeeList, setShowEmployeeList] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,71 +30,111 @@ const EmployeeSalaryDashboard = () => {
     useState("All Departments");
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showAccountModal, setShowAccountModal] = useState(null);
+  const [loader, setLoader] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [alert, setAlert] = useState({});
+  const [viewMonthlyFinanceAccountModal, setViewMonthlyFinanceAccountModal] =
+    useState(null);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/employees`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setEmployees(data.employees || []);
+    } catch (err) {
+      console.error("Error fetching employees", err);
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(`${config.BACKEND_URL}/api/departments/names`, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+      });
+      const data = await res.json();
+      setDepartments(data.names || []);
+    } catch (err) {
+      console.error("Error fetching Departments", err);
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  const handlePayrollRemove = async (emp) => {
+    let confirmed = confirm(
+      `Are you Sure you want to remove ${emp?.user?.name} from payroll?`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setLoader(true);
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/accounts/remove-payroll/${emp._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setAlert({
+          type: "success",
+          message: data.message,
+        });
+        fetchEmployees();
+      } else {
+        setAlert({
+          type: "error",
+          message: data.message,
+        });
+      }
+    } catch (err) {
+      setAlert({
+        type: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+    fetchDepartments();
+  }, []);
 
   const handleView = (employee) => {
     setSelectedEmployee(employee);
     setIsViewModalOpen(true);
   };
-
-  const availableEmployees = [
-    {
-      id: "EMP004",
-      name: "Rahul Kumar",
-      department: "IT",
-      designation: "Software Engineer",
-      netPay: 75000,
-      status: "Available",
-    },
-    {
-      id: "EMP005",
-      name: "Priya Sharma",
-      department: "Marketing",
-      designation: "Marketing Executive",
-      netPay: 55000,
-      status: "Available",
-    },
-    {
-      id: "EMP006",
-      name: "Amit Singh",
-      department: "Finance",
-      designation: "Accountant",
-      netPay: 60000,
-      status: "Available",
-    },
-    {
-      id: "EMP007",
-      name: "Neha Gupta",
-      department: "HR",
-      designation: "HR Assistant",
-      netPay: 50000,
-      status: "Available",
-    },
-    {
-      id: "EMP008",
-      name: "Vikash Yadav",
-      department: "Operations",
-      designation: "Operations Manager",
-      netPay: 80000,
-      status: "Available",
-    },
-    {
-      id: "EMP009",
-      name: "Sunita Devi",
-      department: "IT",
-      designation: "QA Tester",
-      netPay: 65000,
-      status: "Available",
-    },
-  ];
-
-  const departments = ["IT", "Finance", "HR", "Marketing", "Operations"];
+  // available emp means those who are not added to payrole but available for getting added
+  const availableEmployees = employees.filter((emp) => emp.payroll == false);
 
   const getStatusStats = () => {
     const processed = employees.filter(
       (emp) => emp.status === "Processed"
     ).length;
     const pending = employees.filter((emp) => emp.status === "Pending").length;
-    const totalPayroll = employees.reduce((sum, emp) => sum + emp.netPay, 0);
+    const totalPayroll = employees
+      .filter((emp) => emp.payroll)
+      .reduce((sum, emp) => sum + emp.salary.basic, 0);
 
     return { processed, pending, totalPayroll };
   };
@@ -121,34 +143,33 @@ const EmployeeSalaryDashboard = () => {
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.id.toLowerCase().includes(searchTerm.toLowerCase());
+      emp?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp?._id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment =
       selectedDepartment === "All Departments" ||
-      emp.department === selectedDepartment;
-    return matchesSearch && matchesDepartment;
+      emp.department?.name?.toLowerCase() === selectedDepartment.toLowerCase();
+    return emp.payroll && matchesSearch && matchesDepartment;
   });
 
   const filteredAvailableEmployees = availableEmployees.filter((emp) => {
     const matchesSearch =
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.id.toLowerCase().includes(searchTerm.toLowerCase());
+      emp?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp?._id?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment =
       selectedDepartment === "All Departments" ||
-      emp.department === selectedDepartment;
+      emp?.department?.name === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
 
   const handleAddEmployeeToPayroll = (employee) => {
-    const updatedEmployee = { ...employee, status: "Draft" };
-    setEmployees([...employees, updatedEmployee]);
     setShowEmployeeList(false);
+    setShowAccountModal(employee);
   };
 
   const updateEmployeeStatus = (employeeId, newStatus) => {
     setEmployees(
       employees.map((emp) =>
-        emp.id === employeeId ? { ...emp, status: newStatus } : emp
+        emp._id === employeeId ? { ...emp, status: newStatus } : emp
       )
     );
   };
@@ -193,6 +214,8 @@ const EmployeeSalaryDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
+      {loader && <Loader />}
+      <Alert alert={alert} setAlert={setAlert} />
       <div className="flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -203,13 +226,13 @@ const EmployeeSalaryDashboard = () => {
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+          <button className="cursor-pointer flex items-center gap-2 px-4 py-2   rounded-lg hover:bg-gray-50">
             <Download className="w-4 h-4" />
             Export Data
           </button>
           <button
             onClick={() => setShowEmployeeList(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
             Add Employee
@@ -219,12 +242,12 @@ const EmployeeSalaryDashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-6 rounded-xl shadow-sm ">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Employees</p>
               <p className="text-3xl font-bold text-gray-900">
-                {employees.length}
+                {filteredEmployees.length || 0}
               </p>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -233,7 +256,7 @@ const EmployeeSalaryDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-6 rounded-xl shadow-sm ">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Processed</p>
@@ -247,7 +270,7 @@ const EmployeeSalaryDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-6 rounded-xl shadow-sm ">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Pending</p>
@@ -261,12 +284,12 @@ const EmployeeSalaryDashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border">
+        <div className="bg-white p-6 rounded-xl shadow-sm ">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Payroll</p>
               <p className="text-3xl font-bold text-purple-600">
-                ₹{stats.totalPayroll.toLocaleString()}
+                ₹{stats.totalPayroll || 0}
               </p>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -277,49 +300,49 @@ const EmployeeSalaryDashboard = () => {
       </div>
 
       {/* Employee Records Section */}
-      <div className="bg-white rounded-xl shadow-sm border">
-        <div className="p-6 border-b">
+      <div className="bg-white rounded-xl shadow-sm ">
+        <div className="p-6 -b">
           <h2 className="text-xl font-semibold text-gray-900">
             Employee Salary Records
           </h2>
         </div>
 
         {/* Search and Filters */}
-        <div className="p-6 border-b bg-gray-50">
+        <div className="p-6 -b bg-gray-50">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search by name or employee code..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2  border border-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:-transparent"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <select
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 uppercase text-purple-400 text-lg font-semibold"
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
             >
               <option>All Departments</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
+              {departments.map((dept, idx) => (
+                <option key={dept._id} value={dept.name}>
+                  {dept.name}
                 </option>
               ))}
             </select>
-            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            {/* <button className="flex items-center gap-2 px-4 py-2   rounded-lg hover:bg-gray-50">
               <Filter className="w-4 h-4" />
               More Filters
-            </button>
+            </button> */}
           </div>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-gray-50 -b">
               <tr>
                 <th className="text-left p-4 font-medium text-gray-900">
                   Employee
@@ -343,79 +366,69 @@ const EmployeeSalaryDashboard = () => {
             </thead>
             <tbody>
               {filteredEmployees.map((employee) => (
-                <tr key={employee.id} className="border-b hover:bg-gray-50">
+                <tr key={employee._id} className="-b hover:bg-gray-50">
                   <td className="p-4">
                     <div>
-                      <div className="font-medium text-gray-900">
-                        {employee.name}
+                      <div className="font-medium text-gray-900 capitalize">
+                        {employee?.user?.name}
                       </div>
-                      <div className="text-sm text-gray-500">{employee.id}</div>
+                      <div className="text-sm text-gray-500">
+                        {employee._id}
+                      </div>
                     </div>
                   </td>
                   <td className="p-4">
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-md ${getDepartmentColor(
-                        employee.department
+                      className={`px-2 py-1 text-md font-medium rounded-md uppercase text-purple-400 ${getDepartmentColor(
+                        employee?.department?.name
                       )}`}
                     >
-                      {employee.department}
+                      {employee?.department?.name || "N/A"}
                     </span>
                   </td>
-                  <td className="p-4 text-gray-900">{employee.designation}</td>
+                  <td className="p-4 text-gray-900">
+                    {employee?.user?.position}
+                  </td>
                   <td className="p-4 font-medium text-gray-900">
-                    ₹{employee.netPay.toLocaleString()}
+                    {/* ₹{employee?.netPay?.toLocaleString() || 0}
+                     */}
+                    ₹{employee?.salary?.basic || 0}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() =>
-                          updateEmployeeStatus(employee.id, "Processed")
+                          setViewMonthlyFinanceAccountModal(employee)
                         }
-                        className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md ${getStatusColor(
-                          employee.status
-                        )}`}
+                        className={`cursor-pointer bg-green-400 text-black  rounded-xl p-2 font-extralight font-sans`}
                       >
-                        {getStatusIcon(employee.status)}
-                        {employee.status}
+                        Mark Payed
                       </button>
-                      {employee.status !== "Processed" && (
-                        <div className="flex gap-1">
-                          {employee.status !== "Pending" && (
-                            <button
-                              onClick={() =>
-                                updateEmployeeStatus(employee.id, "Pending")
-                              }
-                              className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"
-                              title="Mark as Pending"
-                            >
-                              <Clock className="w-3 h-3" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() =>
-                              updateEmployeeStatus(employee.id, "Processed")
-                            }
-                            className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200"
-                            title="Mark as Processed"
-                          >
-                            <Check className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </td>
                   <td className="p-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-col">
                       <button
                         onClick={() => handleView(employee)}
-                        className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                        className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm   rounded hover:bg-gray-50"
                       >
                         <Eye className="w-4 h-4" />
                         View
                       </button>
-                      <button className="flex items-center gap-1 px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+                      <button
+                        onClick={() => setShowAccountModal(employee)}
+                        className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm   rounded hover:bg-gray-50"
+                      >
                         <Edit2 className="w-4 h-4" />
                         Edit
+                      </button>
+
+                      <button
+                        onClick={() => handlePayrollRemove(employee)}
+                        className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm text-red-600 rounded hover:bg-gray-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Remove
                       </button>
                     </div>
                   </td>
@@ -430,40 +443,40 @@ const EmployeeSalaryDashboard = () => {
       {showEmployeeList && (
         <div className="fixed inset-0 backdrop-blur-sm bg-black/10 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b">
+            <div className="flex justify-between items-center p-6 -b">
               <h3 className="text-lg font-semibold text-gray-900">
                 Select Employee to Add
               </h3>
               <button
                 onClick={() => setShowEmployeeList(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="cursor-pointer text-gray-400 hover:text-gray-600"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Search and Filter for Available Employees */}
-            <div className="p-6 border-b bg-gray-50">
+            <div className="p-6 -b bg-gray-50">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search employees..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2   rounded-lg focus:ring-2 focus:ring-blue-500 focus:-transparent"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
                 <select
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 text-lg uppercase text-purple-600 rounded-lg focus:ring-2 focus:ring-blue-500"
                   value={selectedDepartment}
                   onChange={(e) => setSelectedDepartment(e.target.value)}
                 >
                   <option>All Departments</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
+                  {departments.map((dept, idx) => (
+                    <option key={dept._id + idx} value={dept.name}>
+                      {dept.name}
                     </option>
                   ))}
                 </select>
@@ -473,7 +486,7 @@ const EmployeeSalaryDashboard = () => {
             {/* Available Employees Table */}
             <div className="overflow-auto max-h-96">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b sticky top-0">
+                <thead className="bg-gray-50 -b sticky top-0">
                   <tr>
                     <th className="text-left p-4 font-medium text-gray-900">
                       Employee
@@ -494,36 +507,37 @@ const EmployeeSalaryDashboard = () => {
                 </thead>
                 <tbody>
                   {filteredAvailableEmployees.map((employee) => (
-                    <tr key={employee.id} className="border-b hover:bg-gray-50">
+                    <tr key={employee._id} className="-b hover:bg-gray-50">
                       <td className="p-4">
                         <div>
-                          <div className="font-medium text-gray-900">
-                            {employee.name}
+                          <div className="font-medium text-gray-900 capitalize">
+                            {employee?.user?.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {employee.id}
+                            {employee._id}
                           </div>
                         </div>
                       </td>
                       <td className="p-4">
                         <span
-                          className={`px-2 py-1 text-xs font-medium rounded-md ${getDepartmentColor(
-                            employee.department
+                          className={`px-2 py-1 text-lg text-purple-400 font-medium rounded-md uppercase ${getDepartmentColor(
+                            employee.department.name
                           )}`}
                         >
-                          {employee.department}
+                          {employee.department.name}
                         </span>
                       </td>
                       <td className="p-4 text-gray-900">
-                        {employee.designation}
+                        {employee.user.position}
                       </td>
                       <td className="p-4 font-medium text-gray-900">
-                        ₹{employee.netPay.toLocaleString()}
+                        {/* ₹{employee?.netPay?.toLocaleString() || 0} */}₹
+                        {employee?.salary?.basic || 0}
                       </td>
                       <td className="p-4">
                         <button
                           onClick={() => handleAddEmployeeToPayroll(employee)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                          className="cursor-pointer px-4 py-2 bg-green-400 text-black rounded-md hover:text-white hover:bg-green-700 text-sm"
                         >
                           Add to Payroll
                         </button>
@@ -540,14 +554,14 @@ const EmployeeSalaryDashboard = () => {
               )}
             </div>
 
-            <div className="p-6 border-t bg-gray-50">
+            <div className="p-6 -t bg-gray-50">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">
                   {filteredAvailableEmployees.length} employees available
                 </span>
                 <button
                   onClick={() => setShowEmployeeList(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="cursor-pointer px-4 py-2   rounded-md hover:bg-gray-50"
                 >
                   Close
                 </button>
@@ -562,6 +576,36 @@ const EmployeeSalaryDashboard = () => {
           onClose={() => {
             setIsViewModalOpen(false);
             setSelectedEmployee(null);
+          }}
+        />
+      )}
+
+      {showAccountModal && (
+        <AddToPayrollFinanceAccountModal
+          employee={showAccountModal}
+          onClose={() => setShowAccountModal(null)}
+          onSuccess={() => {
+            fetchEmployees();
+            setAlert({
+              type: "success",
+              message: "Employee Payroll Info Updated Successfully",
+            });
+            setShowAccountModal(null);
+          }}
+        />
+      )}
+
+      {viewMonthlyFinanceAccountModal && (
+        <MonthlyFinanceAccountModal
+          employee={viewMonthlyFinanceAccountModal}
+          onClose={() => setViewMonthlyFinanceAccountModal(null)}
+          onSuccess={() => {
+            fetchEmployees();
+            setAlert({
+              type: "success",
+              message: "Salary Info Updated Successfully ",
+            });
+            setViewMonthlyFinanceAccountModal(null);
           }}
         />
       )}

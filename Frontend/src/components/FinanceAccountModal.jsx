@@ -1,94 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import config from "../config";
 import Alert from "../components/Alert";
 import Loader from "../components/Loader";
 import SalaryInput from "../components/SalaryInput";
 
-export default function FinanceAccountModal({ onClose, employee, onSuccess }) {
-  const defaultEarnings = [
-    "basic",
-    "hra",
-    "conveyance",
-    "lunch",
-    "specialAllowance",
-    "medicalReimbursement",
-    "vehicleWheelerAllowance",
-    "lta",
-    "vehicleMaintenance",
-    "otherAllowance",
-    "cityCompensation",
-    "fuelReimbursement",
-  ];
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-  const defaultDeductions = ["pf", "vpf", "gtli", "tds", "other"];
-
-  const getDefaultComponents = (fields, salaryObj = {}) =>
-    fields.map((key) => ({
-      type: key,
-      amount: salaryObj[key] || 0,
-    }));
-
+export function AddToPayrollFinanceAccountModal({
+  onClose,
+  employee,
+  onSuccess,
+}) {
   const [form, setForm] = useState({
     employee: employee._id,
-    bankName: "",
-    bankAccountNo: "",
-    bankIfscCode: "",
-    pan: "",
-    aadhar: "",
-    pfNo: "",
-    uan: "",
-    esiNo: "",
-    bank_location: "",
-    month: "",
-    year: new Date().getFullYear(),
-    paidDays: 0,
-    lopDays: 0,
-    arrearDays: 0,
-    daysInMonth: 0,
+    bankName: employee.account?.bankName || "",
+    bankAccountNo: employee.account?.bankAccountNo || "",
+    bankIfscCode: employee.account?.bankIfscCode || "",
+    pan: employee.account?.pan || "",
+    aadhar: employee.account?.aadhar || "",
+    pfNo: employee.account?.pfNo || "",
+    uan: employee.account?.uan || "",
+    esiNo: employee.account?.esiNo || "",
+    bank_location: employee.account?.bank_location || "",
 
-    earnings: getDefaultComponents(defaultEarnings, employee.salary),
-    deductions: getDefaultComponents(defaultDeductions),
-
-    netPay: 0,
-    incomeTax: {
-      tillDate: 0,
-      projected: 0,
-      exemptions: {
-        sec10: 0,
-        sec16: 0,
-        sec80C: 0,
-        sec80CCE: 0,
-        sec6A: 0,
-      },
-      grossSalary: 0,
-      totalIncome: 0,
-      tax: {
-        base: 0,
-        educationCess: 0,
-        totalTax: 0,
-        deductedTillDate: 0,
-        currentMonth: 0,
-        balancePayable: 0,
-      },
+    taxExemptions: {
+      sec10: employee?.account?.taxExemptions?.sec10 || 0,
+      sec16: employee?.account?.taxExemptions?.sec16 || 0,
+      sec80C: employee?.account?.taxExemptions?.sec80C || 0,
+      sec80CCE: employee?.account?.taxExemptions?.sec80CCE || 0,
+      sec6A: employee?.account?.taxExemptions?.sec6A || 0,
     },
-    hraExemption: [
-      {
-        month: "",
-        basicPaid: 0,
-        rentPaid: 0,
-        isMetro: false,
-        hra: 0,
-        rentLess10Percent: 0,
-        percentOfBasic: 0,
-        exemption: 0,
-      },
-    ],
-    taxDeductedBreakup: [
-      {
-        month: "",
-        amount: 0,
-      },
-    ],
+    projectedIncomeTax: employee?.account?.projectedIncomeTax || 0,
+    grossSalary: employee?.account?.grossSalary || 0,
+    totalIncome: employee?.account?.totalIncome || 0,
+    taxStructure: {
+      base: employee?.account?.taxStructure?.base || 0,
+      educationCess: employee?.account?.taxStructure?.educationCess || 0,
+    },
   });
 
   const [loader, setLoader] = useState(false);
@@ -138,6 +99,7 @@ export default function FinanceAccountModal({ onClose, employee, onSuccess }) {
           Finance Account Entry
         </h2>
 
+        {/* Static Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             "pan",
@@ -149,7 +111,6 @@ export default function FinanceAccountModal({ onClose, employee, onSuccess }) {
             "uan",
             "esiNo",
             "bank_location",
-            "month",
           ].map((field) => (
             <div key={field}>
               <label className="block text-sm font-medium text-gray-500">
@@ -164,6 +125,294 @@ export default function FinanceAccountModal({ onClose, employee, onSuccess }) {
               />
             </div>
           ))}
+        </div>
+
+        {/* Tax Exemptions & Structure */}
+        <h3 className="text-lg font-semibold mt-6 mb-2">Tax Exemptions</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {Object.entries(form.taxExemptions).map(([key, val]) => (
+            <div key={key}>
+              <label className="text-sm text-gray-600">{key}</label>
+              <input
+                type="number"
+                className="employee-form"
+                value={val}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    taxExemptions: {
+                      ...prev.taxExemptions,
+                      [key]: Number(e.target.value),
+                    },
+                  }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        <h3 className="text-lg font-semibold mt-6 mb-2">
+          Income Tax Structure
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          {["projectedIncomeTax", "grossSalary", "totalIncome"].map((key) => (
+            <div key={key}>
+              <label className="text-sm text-gray-600">{key}</label>
+              <input
+                type="number"
+                className="employee-form"
+                value={form[key] || 0}
+                onChange={handleChange}
+                name={key}
+              />
+            </div>
+          ))}
+          {Object.entries(form.taxStructure).map(([key, val]) => (
+            <div key={key}>
+              <label className="text-sm text-gray-600">{key}</label>
+              <input
+                type="number"
+                className="employee-form"
+                value={val}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    taxStructure: {
+                      ...prev.taxStructure,
+                      [key]: Number(e.target.value),
+                    },
+                  }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Submit */}
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="cursor-pointer bg-gray-500 text-white px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded"
+          >
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export const MonthlyFinanceAccountModal = ({
+  onClose,
+  employee,
+  onSuccess,
+}) => {
+  const salaryArr = [];
+  for (const key in employee.salary) {
+    salaryArr.push({ type: key, amount: employee.salary[key] });
+  }
+  const defaultDeductions = ["pf", "vpf", "gtli", "tds", "other"];
+
+  const getDefaultComponents = (fields, salaryObj = {}) =>
+    fields.map((key) => ({ type: key, amount: salaryObj[key] || 0 }));
+
+  const [alert, setAlert] = useState({});
+  const [loader, setLoader] = useState(false);
+
+  const [form, setForm] = useState({
+    salaryRecord: {
+      month: new Date().toLocaleString("en-US", { month: "long" }),
+      year: new Date().getFullYear(),
+      paidDays: 0,
+      lopDays: 0,
+      arrearDays: 0,
+      daysInMonth: new Date(
+        new Date().getFullYear(),
+        new Date().getMonth() + 1,
+        0
+      ).getDate(),
+      earnings: salaryArr,
+      deductions: getDefaultComponents(defaultDeductions),
+      netPay: 0,
+      incomeTax: {
+        tillDate: 0,
+        deductedTillDate: 0,
+        currentMonth: 0,
+        balancePayable: 0,
+      },
+      hraExemption: {
+        basicPaid: 0,
+        rentPaid: 0,
+        isMetro: false,
+        hra: 0,
+        rentLess10Percent: 0,
+        percentOfBasic: 0,
+        exemption: 0,
+      },
+      taxDeductedBreakup: [{ month: "", amount: 0 }],
+    },
+  });
+
+  const earningsRef = useRef();
+  const deductionsRef = useRef();
+
+  const getTotal = (components) =>
+    components.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  const getDaysInMonth = (monthName, year) => {
+    const index = months.indexOf(monthName);
+    return new Date(year, index + 1, 0).getDate();
+  };
+
+  useEffect(() => {
+    const totalEarnings = getTotal(form.salaryRecord.earnings);
+    const totalDeductions = getTotal(form.salaryRecord.deductions);
+    const netPay = totalEarnings - totalDeductions;
+
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: {
+        ...prev.salaryRecord,
+        netPay: netPay,
+      },
+    }));
+  }, [form.salaryRecord.earnings, form.salaryRecord.deductions]);
+
+  useEffect(() => {
+    const updatedDays = getDaysInMonth(
+      form.salaryRecord.month,
+      form.salaryRecord.year
+    );
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: {
+        ...prev.salaryRecord,
+        daysInMonth: updatedDays,
+        paidDays: updatedDays,
+      },
+    }));
+  }, [form.salaryRecord.month, form.salaryRecord.year]);
+
+  const handleSalaryRecordChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: {
+        ...prev.salaryRecord,
+        [name]: name === "month" ? value : Number(value),
+      },
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const updatedEarnings = earningsRef.current?.handleSubmit();
+    const updatedDeductions = deductionsRef.current?.handleSubmit();
+
+    if (!updatedEarnings || !updatedDeductions) {
+      return;
+    }
+
+    const totalEarnings = getTotal(updatedEarnings);
+    const totalDeductions = getTotal(updatedDeductions);
+    const netPay = totalEarnings - totalDeductions;
+
+    const updatedSalaryRecord = {
+      ...form.salaryRecord,
+      earnings: updatedEarnings,
+      deductions: updatedDeductions,
+      netPay,
+    };
+
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: updatedSalaryRecord,
+    }));
+
+    try {
+      setLoader(true);
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/accounts/add-monthly-salary/${employee._id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedSalaryRecord),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setAlert({
+          type: "success",
+          message: data.message,
+        });
+        onSuccess?.();
+        onClose();
+      } else {
+        setAlert({
+          type: "error",
+          message: data.message,
+        });
+      }
+    } catch (err) {
+      setAlert({
+        type: "error",
+        message: err.message,
+      });
+    } finally {
+      setLoader(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex flex-col items-center justify-center z-50 p-4">
+      {/* Monthly Inputs */}
+      {loader && <Loader />}
+      <form
+        onSubmit={(e) => handleSubmit(e)}
+        className="bg-white p-6 rounded-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-xl"
+      >
+        <Alert alert={alert} setAlert={setAlert} />
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Finance Account Entry
+        </h2>
+
+        <h3 className="text-lg font-semibold mt-6 mb-2">
+          Monthly Salary Inputs
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-500">
+              Month
+            </label>
+            <select
+              name="month"
+              value={form.salaryRecord.month}
+              onChange={handleSalaryRecordChange}
+              className="employee-form"
+            >
+              <option value={form.salaryRecord.month}>
+                {form.salaryRecord.month}
+              </option>
+              {months.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
           {[
             "year",
             "paidDays",
@@ -179,159 +428,50 @@ export default function FinanceAccountModal({ onClose, employee, onSuccess }) {
               <input
                 type="number"
                 name={field}
-                value={form[field]}
-                onChange={handleChange}
+                value={form.salaryRecord[field]}
+                onChange={handleSalaryRecordChange}
                 className="employee-form"
               />
             </div>
           ))}
         </div>
 
-        <h3 className="text-lg font-semibold mt-6 mb-2">Earnings</h3>
         <SalaryInput
-          salary={form.earnings}
+          ref={earningsRef}
+          title="Earnings"
+          salary={form.salaryRecord.earnings}
+          setSalary={(components) => {
+            setForm((prev) => ({
+              ...prev,
+              salaryRecord: { ...prev.salaryRecord, earnings: components },
+            }));
+          }}
+        />
+
+        <SalaryInput
+          ref={deductionsRef}
+          title="Deductions"
+          salary={form.salaryRecord.deductions}
           setSalary={(components) =>
-            setForm((prev) => ({ ...prev, earnings: components }))
+            setForm((prev) => ({
+              ...prev,
+              salaryRecord: { ...prev.salaryRecord, deductions: components },
+            }))
           }
         />
 
-        <h3 className="text-lg font-semibold mt-6 mb-2">Deductions</h3>
-        <SalaryInput
-          salary={form.deductions}
-          setSalary={(components) =>
-            setForm((prev) => ({ ...prev, deductions: components }))
-          }
-        />
-
-        <h3 className="text-lg font-semibold mt-6 mb-2">Income Tax Info</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {Object.entries(form.incomeTax).map(([key, val]) =>
-            typeof val === "object" ? (
-              <div key={key} className="col-span-2">
-                <h4 className="font-semibold text-gray-700 mt-4">
-                  {key.toUpperCase()}
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {Object.entries(val).map(([subKey, subVal]) => (
-                    <div key={subKey}>
-                      <label className="text-sm text-gray-600">{subKey}</label>
-                      <input
-                        type="number"
-                        className="employee-form"
-                        value={subVal}
-                        onChange={(e) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            incomeTax: {
-                              ...prev.incomeTax,
-                              [key]: {
-                                ...prev.incomeTax[key],
-                                [subKey]: Number(e.target.value),
-                              },
-                            },
-                          }))
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div key={key}>
-                <label className="text-sm text-gray-600">{key}</label>
-                <input
-                  type="number"
-                  className="employee-form"
-                  value={val}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      incomeTax: {
-                        ...prev.incomeTax,
-                        [key]: Number(e.target.value),
-                      },
-                    }))
-                  }
-                />
-              </div>
-            )
-          )}
-        </div>
-
-        <h3 className="text-lg font-semibold mt-6 mb-2">HRA Exemption</h3>
-        {/* Can be enhanced with dynamic UI */}
-        <div className="grid grid-cols-2 gap-2">
-          {Object.keys(form.hraExemption[0]).map((key) => (
-            <div key={key}>
-              <label className="text-sm text-gray-600">{key}</label>
-              <input
-                type={key === "isMetro" ? "checkbox" : "text"}
-                className="employee-form"
-                value={form.hraExemption[0][key]}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    hraExemption: [
-                      {
-                        ...prev.hraExemption[0],
-                        [key]:
-                          key === "isMetro"
-                            ? e.target.checked
-                            : isNaN(e.target.value)
-                            ? e.target.value
-                            : Number(e.target.value),
-                      },
-                    ],
-                  }))
-                }
-              />
-            </div>
-          ))}
-        </div>
-
-        <h3 className="text-lg font-semibold mt-6 mb-2">
-          Tax Deducted Breakup
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {form.taxDeductedBreakup.map((item, index) => (
-            <React.Fragment key={index}>
-              <input
-                type="text"
-                placeholder="Month"
-                className="employee-form"
-                value={item.month}
-                onChange={(e) => {
-                  const updated = [...form.taxDeductedBreakup];
-                  updated[index].month = e.target.value;
-                  setForm((prev) => ({ ...prev, taxDeductedBreakup: updated }));
-                }}
-              />
-              <input
-                type="number"
-                placeholder="Amount"
-                className="employee-form"
-                value={item.amount}
-                onChange={(e) => {
-                  const updated = [...form.taxDeductedBreakup];
-                  updated[index].amount = Number(e.target.value);
-                  setForm((prev) => ({ ...prev, taxDeductedBreakup: updated }));
-                }}
-              />
-            </React.Fragment>
-          ))}
-        </div>
-
+        {/* Submit */}
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
-            className="bg-gray-500 text-white px-4 py-2 rounded"
+            className="cursor-pointer bg-gray-500 text-white px-4 py-2 rounded"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded"
+            className="cursor-pointer bg-green-600 text-white px-4 py-2 rounded"
           >
             Submit
           </button>
@@ -339,4 +479,4 @@ export default function FinanceAccountModal({ onClose, employee, onSuccess }) {
       </form>
     </div>
   );
-}
+};
