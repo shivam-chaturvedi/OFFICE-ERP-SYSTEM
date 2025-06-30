@@ -49,7 +49,7 @@ export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
     try {
       setLoader(true);
 
-      const res = await fetch(`${config.BACKEND_URL}/api/accounts/add`, {
+      const res = await fetch(`${config.BACKEND_URL}/api/accounts/add-update`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
