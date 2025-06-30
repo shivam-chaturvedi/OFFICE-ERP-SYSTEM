@@ -218,6 +218,7 @@ export const MonthlyFinanceAccountModal = ({
   for (const key in employee.salary) {
     salaryArr.push({ type: key, amount: employee.salary[key] });
   }
+  
   const defaultDeductions = ["pf", "vpf", "gtli", "tds", "other"];
 
   const getDefaultComponents = (fields, salaryObj = {}) =>
