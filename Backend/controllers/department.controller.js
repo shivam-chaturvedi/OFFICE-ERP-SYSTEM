@@ -41,8 +41,9 @@ const addDepartment = async (req, res) => {
       status,
     } = req.body;
 
+    let headEmployee = null;
     if (head) {
-      const headEmployee = await Employee.findById(head);
+      headEmployee = await Employee.findById(head);
       if (!headEmployee) {
         return res
           .status(400)
@@ -79,6 +80,8 @@ const addDepartment = async (req, res) => {
       projects,
     });
 
+    headEmployee.department = dept._id;
+    await headEmployee.save();
     res.status(201).json({
       message: "Department created successfully!",
       department: dept,
@@ -129,12 +132,10 @@ const toggleStatus = async (req, res) => {
       { $set: { status: !department.status } }
     );
 
-    res
-      .status(200)
-      .json({
-        message: "Status updated successfully",
-        status: updatedDept.status,
-      });
+    res.status(200).json({
+      message: "Status updated successfully",
+      status: updatedDept.status,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

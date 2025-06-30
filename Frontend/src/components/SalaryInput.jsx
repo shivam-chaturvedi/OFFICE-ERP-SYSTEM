@@ -144,7 +144,7 @@ const SalaryInput = forwardRef(
               ))}
             </div>
             <div className="mt-4 font-semibold text-gray-700">
-              Total Salary: ₹{totalSalary.toLocaleString()}
+              Total {title}: ₹{totalSalary.toLocaleString()}
             </div>
           </>
         )}

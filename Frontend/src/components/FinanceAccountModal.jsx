@@ -19,11 +19,71 @@ const months = [
   "December",
 ];
 
+const indianBanks = [
+  "State Bank of India",
+  "HDFC Bank",
+  "ICICI Bank",
+  "Axis Bank",
+  "Kotak Mahindra Bank",
+  "Punjab National Bank",
+  "Bank of Baroda",
+  "Canara Bank",
+  "Union Bank of India",
+  "IDBI Bank",
+  "Yes Bank",
+  "IndusInd Bank",
+  "Indian Bank",
+  "Bank of India",
+  "Central Bank of India",
+];
+
 export function AddToPayrollFinanceAccountModal({
   onClose,
   employee,
   onSuccess,
 }) {
+  const earningsArr = [];
+
+  const deductionsArr = [];
+
+  for (const key in employee?.account?.earnings) {
+    earningsArr.push({ type: key, amount: employee?.account?.earnings[key] });
+  }
+
+  for (const key in employee?.account?.deductions) {
+    deductionsArr.push({
+      type: key,
+      amount: employee?.account?.deductions[key],
+    });
+  }
+
+  const defaultDeductions = ["pf", "vpf", "gtli", "tds", "other"];
+
+  const defaultEarnings = [
+    "basic",
+    "hra",
+    "conveyance",
+    "lunch",
+    "specialAllowance",
+    "medicalReimbursement",
+    "vehicleWheelerAllowance",
+    "lta",
+    "vehicleMaintenance",
+    "otherAllowance",
+    "cityCompensation",
+    "fuelReimbursement",
+  ];
+
+  const getDefaultComponents = (fields, salaryObj = {}) =>
+    fields.map((key) => ({ type: key, amount: salaryObj[key] || 0 }));
+
+  const getTotal = (components) =>
+    components.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  const earningsRef = useRef();
+  const deductionsRef = useRef();
+  const [showCustomBank, setShowCustomBank] = useState(false);
+
   const [form, setForm] = useState({
     employee: employee._id,
     bankName: employee.account?.bankName || "",
@@ -50,10 +110,35 @@ export function AddToPayrollFinanceAccountModal({
       base: employee?.account?.taxStructure?.base || 0,
       educationCess: employee?.account?.taxStructure?.educationCess || 0,
     },
+    salaryRecord: {
+      earnings:
+        earningsArr && earningsArr.length > 0
+          ? earningsArr
+          : getDefaultComponents(defaultEarnings),
+      deductions:
+        deductionsArr && deductionsArr.length > 0
+          ? deductionsArr
+          : getDefaultComponents(defaultDeductions),
+      netPay: employee?.account?.netPay || 0,
+    },
   });
 
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
+
+  useEffect(() => {
+    const totalEarnings = getTotal(form.salaryRecord.earnings);
+    const totalDeductions = getTotal(form.salaryRecord.deductions);
+    const netPay = totalEarnings - totalDeductions;
+
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: {
+        ...prev.salaryRecord,
+        netPay: netPay,
+      },
+    }));
+  }, [form.salaryRecord.earnings, form.salaryRecord.deductions]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,15 +147,43 @@ export function AddToPayrollFinanceAccountModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const updatedEarnings = earningsRef.current?.handleSubmit();
+    const updatedDeductions = deductionsRef.current?.handleSubmit();
+
+    if (!updatedEarnings || !updatedDeductions) {
+      return;
+    }
+
+    const totalEarnings = getTotal(updatedEarnings);
+    const totalDeductions = getTotal(updatedDeductions);
+    const netPay = totalEarnings - totalDeductions;
+
+    if (netPay < 0) {
+      setAlert({ type: "error", message: "Net pay Is Invalid " });
+      return;
+    }
+
+    const updatedSalaryRecord = {
+      earnings: updatedEarnings,
+      deductions: updatedDeductions,
+      netPay: netPay,
+    };
+
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: updatedSalaryRecord,
+    }));
+
     try {
       setLoader(true);
-      const res = await fetch(`${config.BACKEND_URL}/api/accounts/add`, {
+      const res = await fetch(`${config.BACKEND_URL}/api/accounts/add-update`, {
         method: "POST",
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, salaryRecord: updatedSalaryRecord }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -87,6 +200,8 @@ export function AddToPayrollFinanceAccountModal({
     }
   };
 
+  indianBanks.sort((a, b) => a.localeCompare(b));
+
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-white/10 flex items-center justify-center z-50 p-4">
       {loader && <Loader />}
@@ -99,12 +214,10 @@ export function AddToPayrollFinanceAccountModal({
           Finance Account Entry
         </h2>
 
-        {/* Static Fields */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             "pan",
             "aadhar",
-            "bankName",
             "bankAccountNo",
             "bankIfscCode",
             "pfNo",
@@ -125,7 +238,82 @@ export function AddToPayrollFinanceAccountModal({
               />
             </div>
           ))}
+
+          {/* Bank Name field with dropdown + custom input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-500">
+              BANK NAME
+            </label>
+            <select
+              name="bankName"
+              value={showCustomBank ? "custom" : form.bankName}
+              onChange={(e) => {
+                if (e.target.value === "custom") {
+                  setShowCustomBank(true);
+                  setForm((prev) => ({ ...prev, bankName: "" }));
+                } else {
+                  setShowCustomBank(false);
+                  setForm((prev) => ({ ...prev, bankName: e.target.value }));
+                }
+              }}
+              className="employee-form"
+              required
+            >
+              <option value="">-- Select Bank --</option>
+              {indianBanks.map((bank) => (
+                <option key={bank} value={bank}>
+                  {bank}
+                </option>
+              ))}
+              <option value="custom">Other</option>
+            </select>
+
+            {showCustomBank && (
+              <input
+                type="text"
+                name="bankName"
+                required
+                placeholder="Enter Bank Name"
+                value={form.bankName}
+                onChange={handleChange}
+                className="employee-form mt-2"
+              />
+            )}
+          </div>
         </div>
+
+        <SalaryInput
+          ref={earningsRef}
+          title="Earnings"
+          salary={form?.salaryRecord?.earnings}
+          setSalary={(components) => {
+            setForm((prev) => ({
+              ...prev,
+              salaryRecord: { ...prev.salaryRecord, earnings: components },
+            }));
+          }}
+        />
+
+        <SalaryInput
+          ref={deductionsRef}
+          title="Deductions"
+          salary={form?.salaryRecord?.deductions}
+          setSalary={(components) =>
+            setForm((prev) => ({
+              ...prev,
+              salaryRecord: { ...prev.salaryRecord, deductions: components },
+            }))
+          }
+        />
+
+        <label
+          className={`uppercase block ml-1 mt-2 text-lg font-medium text-gray-500`}
+        >
+          netPay :{" "}
+          <span className="font-bold text-lg ">
+            ₹{form.salaryRecord.netPay}
+          </span>
+        </label>
 
         {/* Tax Exemptions & Structure */}
         <h3 className="text-lg font-semibold mt-6 mb-2">Tax Exemptions</h3>
@@ -214,11 +402,37 @@ export const MonthlyFinanceAccountModal = ({
   employee,
   onSuccess,
 }) => {
-  const salaryArr = [];
-  for (const key in employee.salary) {
-    salaryArr.push({ type: key, amount: employee.salary[key] });
+  const earningsArr = [];
+
+  const deductionsArr = [];
+
+  for (const key in employee?.account?.earnings) {
+    earningsArr.push({ type: key, amount: employee?.account?.earnings[key] });
   }
+
+  for (const key in employee?.account?.deductions) {
+    deductionsArr.push({
+      type: key,
+      amount: employee?.account?.deductions[key],
+    });
+  }
+
   const defaultDeductions = ["pf", "vpf", "gtli", "tds", "other"];
+
+  const defaultEarnings = [
+    "basic",
+    "hra",
+    "conveyance",
+    "lunch",
+    "specialAllowance",
+    "medicalReimbursement",
+    "vehicleWheelerAllowance",
+    "lta",
+    "vehicleMaintenance",
+    "otherAllowance",
+    "cityCompensation",
+    "fuelReimbursement",
+  ];
 
   const getDefaultComponents = (fields, salaryObj = {}) =>
     fields.map((key) => ({ type: key, amount: salaryObj[key] || 0 }));
@@ -238,9 +452,15 @@ export const MonthlyFinanceAccountModal = ({
         new Date().getMonth() + 1,
         0
       ).getDate(),
-      earnings: salaryArr,
-      deductions: getDefaultComponents(defaultDeductions),
-      netPay: 0,
+      earnings:
+        earningsArr && earningsArr.length > 0
+          ? earningsArr
+          : getDefaultComponents(defaultEarnings),
+      deductions:
+        deductionsArr && deductionsArr.length > 0
+          ? deductionsArr
+          : getDefaultComponents(defaultDeductions),
+      netPay: employee?.account?.netPay || 0,
       incomeTax: {
         tillDate: 0,
         deductedTillDate: 0,
@@ -313,7 +533,6 @@ export const MonthlyFinanceAccountModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const updatedEarnings = earningsRef.current?.handleSubmit();
     const updatedDeductions = deductionsRef.current?.handleSubmit();
 
@@ -413,27 +632,22 @@ export const MonthlyFinanceAccountModal = ({
               ))}
             </select>
           </div>
-          {[
-            "year",
-            "paidDays",
-            "lopDays",
-            "arrearDays",
-            "daysInMonth",
-            "netPay",
-          ].map((field) => (
-            <div key={field}>
-              <label className="block text-sm font-medium text-gray-500">
-                {field.replace(/([A-Z])/g, " $1").toUpperCase()}
-              </label>
-              <input
-                type="number"
-                name={field}
-                value={form.salaryRecord[field]}
-                onChange={handleSalaryRecordChange}
-                className="employee-form"
-              />
-            </div>
-          ))}
+          {["year", "paidDays", "lopDays", "arrearDays", "daysInMonth"].map(
+            (field) => (
+              <div key={field}>
+                <label className={`block text-sm font-medium text-gray-500`}>
+                  {field.replace(/([A-Z])/g, " $1").toUpperCase()}
+                </label>
+                <input
+                  type="number"
+                  name={field}
+                  value={form.salaryRecord[field]}
+                  onChange={handleSalaryRecordChange}
+                  className="employee-form"
+                />
+              </div>
+            )
+          )}
         </div>
 
         <SalaryInput
@@ -459,6 +673,15 @@ export const MonthlyFinanceAccountModal = ({
             }))
           }
         />
+
+        <label
+          className={`uppercase block ml-1 mt-2 text-lg font-medium text-gray-500`}
+        >
+          netPay :{" "}
+          <span className="font-bold text-lg ">
+            ₹{form.salaryRecord.netPay}
+          </span>
+        </label>
 
         {/* Submit */}
         <div className="mt-6 flex justify-end gap-2">

@@ -134,7 +134,7 @@ const EmployeeSalaryDashboard = () => {
     const pending = employees.filter((emp) => emp.status === "Pending").length;
     const totalPayroll = employees
       .filter((emp) => emp.payroll)
-      .reduce((sum, emp) => sum + emp.salary.basic, 0);
+      .reduce((sum, emp) => sum + emp?.account?.netPay, 0);
 
     return { processed, pending, totalPayroll };
   };
@@ -390,9 +390,7 @@ const EmployeeSalaryDashboard = () => {
                     {employee?.user?.position}
                   </td>
                   <td className="p-4 font-medium text-gray-900">
-                    {/* ₹{employee?.netPay?.toLocaleString() || 0}
-                     */}
-                    ₹{employee?.salary?.basic || 0}
+                    ₹{employee?.account?.netPay || 0}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
@@ -531,8 +529,7 @@ const EmployeeSalaryDashboard = () => {
                         {employee.user.position}
                       </td>
                       <td className="p-4 font-medium text-gray-900">
-                        {/* ₹{employee?.netPay?.toLocaleString() || 0} */}₹
-                        {employee?.salary?.basic || 0}
+                        ₹{employee?.account?.netPay || 0}
                       </td>
                       <td className="p-4">
                         <button

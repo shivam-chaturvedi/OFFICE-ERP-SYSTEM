@@ -31,7 +31,6 @@ const addOrUpdateAccount = async (req, res) => {
     }
 
     let account = await Account.findOne({ employee: formData.employee });
-
     const staticFields = {
       bankName: formData.bankName ?? account.bankName ?? "",
       bankAccountNo: formData.bankAccountNo ?? account.bankAccountNo ?? "",
@@ -59,6 +58,10 @@ const addOrUpdateAccount = async (req, res) => {
           base: 0,
           educationCess: 0,
         },
+      earnings: convertToSalaryObject(formData.salaryRecord?.earnings) || {},
+      deductions:
+        convertToSalaryObject(formData.salaryRecord?.deductions) || {},
+      netPay: formData.salaryRecord?.netPay || 0,
     };
 
     if (account) {
@@ -150,7 +153,7 @@ const addMonthlySalaryOfEmployee = async (req, res) => {
     };
 
     account.salaryRecords.push(salaryRecord);
- 
+
     await account.save();
 
     res.status(200).json({ message: "Salary Info Updated Successfully " });

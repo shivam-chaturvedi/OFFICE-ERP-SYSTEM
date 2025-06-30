@@ -189,7 +189,14 @@ const ManageDepartments = () => {
   const totalDepartments = departments.length;
   const activeDepartments = departments.filter((d) => d.status).length;
   const inactiveDepartments = departments.filter((d) => !d.status).length;
-  const totalEmployees = departments.reduce((sum, d) => sum + d.employees?.length, 0);
+
+  const uniqueEmployeeIds = new Set();
+
+  departments.forEach((dept) => {
+    dept.employees?.forEach((emp) => uniqueEmployeeIds.add(emp._id));
+  });
+
+  const totalEmployees = uniqueEmployeeIds.size;
 
   const StatCard = ({ title, value, icon: Icon, trend, color = "blue" }) => (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -431,6 +438,7 @@ const ManageDepartments = () => {
                       >
                         <Edit2 size={20} className="mr-1 text-green-800" /> Edit
                       </button>
+                      
                     </td>
                   </tr>
                 ))}

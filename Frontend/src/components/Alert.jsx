@@ -6,7 +6,7 @@ export default function Alert({ alert, setAlert }) {
   useEffect(() => {
     let timer = null;
 
-    if (alert.type === "error") {
+    if (alert.type) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 

@@ -21,6 +21,10 @@ const accountSchema = new mongoose.Schema(
     esiNo: { type: String, unique: true, sparse: true },
     bank_location: String,
 
+    earnings: { type: Map, of: Number },
+    deductions: { type: Map, of: Number },
+    netPay: Number,
+    
     // One-Time Tax Exemption & Income Tax Structure
     taxExemptions: {
       sec10: Number,
