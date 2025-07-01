@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+// When Bank Details Clicked at ManageEmployees
+import React, { useEffect, useRef, useState } from "react";
 import config from "../config";
 import Loader from "./Loader";
 import Alert from "./Alert";
+import SalaryInput from "./SalaryInput";
 
 const indianBanks = [
   "State Bank of India",
@@ -22,6 +24,47 @@ const indianBanks = [
 ];
 
 export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
+  const earningsArr = [];
+
+  const deductionsArr = [];
+
+  for (const key in employee?.account?.earnings) {
+    earningsArr.push({ type: key, amount: employee?.account?.earnings[key] });
+  }
+
+  for (const key in employee?.account?.deductions) {
+    deductionsArr.push({
+      type: key,
+      amount: employee?.account?.deductions[key],
+    });
+  }
+
+  const defaultDeductions = ["pf", "vpf", "gtli", "tds", "other"];
+
+  const defaultEarnings = [
+    "basic",
+    "hra",
+    "conveyance",
+    "lunch",
+    "specialAllowance",
+    "medicalReimbursement",
+    "vehicleWheelerAllowance",
+    "lta",
+    "vehicleMaintenance",
+    "otherAllowance",
+    "cityCompensation",
+    "fuelReimbursement",
+  ];
+
+  const getDefaultComponents = (fields, salaryObj = {}) =>
+    fields.map((key) => ({ type: key, amount: salaryObj[key] || 0 }));
+
+  const getTotal = (components) =>
+    components.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+  const earningsRef = useRef();
+  const deductionsRef = useRef();
+
   const [form, setForm] = useState({
     employee: employee._id,
     bankName: employee?.account?.bankName || "",
@@ -31,6 +74,17 @@ export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
     pan: employee?.account?.pan || "",
     aadhar: employee?.account?.aadhar || "",
     esiNo: employee?.account?.esiNo || "",
+    salaryRecord: {
+      earnings:
+        earningsArr && earningsArr.length > 0
+          ? earningsArr
+          : getDefaultComponents(defaultEarnings),
+      deductions:
+        deductionsArr && deductionsArr.length > 0
+          ? deductionsArr
+          : getDefaultComponents(defaultDeductions),
+      netPay: employee?.account?.netPay || 0,
+    },
   });
 
   const [loader, setLoader] = useState(false);
@@ -46,17 +100,47 @@ export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const updatedEarnings = earningsRef.current?.handleSubmit();
+    const updatedDeductions = deductionsRef.current?.handleSubmit();
+
+    if (!updatedEarnings || !updatedDeductions) {
+      return;
+    }
+
+    const totalEarnings = getTotal(updatedEarnings);
+    const totalDeductions = getTotal(updatedDeductions);
+    const netPay = totalEarnings - totalDeductions;
+
+    if (netPay < 0) {
+      setAlert({ type: "error", message: "Net pay Is Invalid " });
+      return;
+    }
+
+    const updatedSalaryRecord = {
+      earnings: updatedEarnings,
+      deductions: updatedDeductions,
+      netPay: netPay,
+    };
+
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: updatedSalaryRecord,
+    }));
     try {
       setLoader(true);
 
-      const res = await fetch(`${config.BACKEND_URL}/api/accounts/add-update`, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/accounts/add-update?role=hr`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...form, salaryRecord: updatedSalaryRecord }),
+        }
+      );
 
       const data = await res.json();
       if (res.ok) {
@@ -72,6 +156,20 @@ export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
       setLoader(false);
     }
   };
+
+  useEffect(() => {
+    const totalEarnings = getTotal(form.salaryRecord.earnings);
+    const totalDeductions = getTotal(form.salaryRecord.deductions);
+    const netPay = totalEarnings - totalDeductions;
+
+    setForm((prev) => ({
+      ...prev,
+      salaryRecord: {
+        ...prev.salaryRecord,
+        netPay: netPay,
+      },
+    }));
+  }, [form.salaryRecord.earnings, form.salaryRecord.deductions]);
 
   const Label = ({ children, required }) => (
     <label className="mr-2 text-base font-medium text-gray-700">
@@ -211,6 +309,39 @@ export default function EmployeeAccountModal({ onClose, employee, onSuccess }) {
               required
             />
           </div>
+        </div>
+
+        <div className="flex justify-between items-stretch w-full mt-2 [&>*:first-child]:w-[60%] [&>*:last-child]:w-[40%]">
+          <SalaryInput
+            ref={earningsRef}
+            title="Earnings"
+            salary={form?.salaryRecord?.earnings}
+            setSalary={(components) => {
+              setForm((prev) => ({
+                ...prev,
+                salaryRecord: { ...prev.salaryRecord, earnings: components },
+              }));
+            }}
+          />
+
+          <SalaryInput
+            ref={deductionsRef}
+            title="Deductions"
+            salary={form?.salaryRecord?.deductions}
+            setSalary={(components) =>
+              setForm((prev) => ({
+                ...prev,
+                salaryRecord: {
+                  ...prev.salaryRecord,
+                  deductions: components,
+                },
+              }))
+            }
+          />
+        </div>
+
+        <div className="mt-4 p-3 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 text-white text-3xl font-bold shadow-lg text-center">
+          Net Pay: ₹{form?.salaryRecord?.netPay}
         </div>
 
         <div className="mt-6 flex justify-end gap-2">

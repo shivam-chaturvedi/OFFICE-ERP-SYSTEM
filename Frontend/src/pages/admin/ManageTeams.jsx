@@ -162,12 +162,22 @@ const TeamManagement = () => {
             value={teams.filter((t) => t.hasActiveProject).length}
             bgColor="bg-green-100"
           />
+          
           <StatCard
             icon={<Building className="text-purple-600" size={20} />}
             label="Departments"
-            value={new Set(teams.map((t) => t.department._id)).size}
+            value={
+              teams?.length
+                ? new Set(
+                    teams
+                      .filter((t) => t?.department?._id) // filter out invalid ones
+                      .map((t) => t.department._id)
+                  ).size
+                : 0
+            }
             bgColor="bg-purple-100"
           />
+
           <StatCard
             icon={<User className="text-orange-600" size={20} />}
             label="Total Members"

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import config from "../config";
 import Loader from "../components/Loader";
 import Alert from "../components/Alert";
-import SalaryInput from "./SalaryInput";
 
 function EditEmployeeModal({
   onClose,
@@ -12,7 +11,6 @@ function EditEmployeeModal({
 }) {
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
-  const [salary, setSalary] = useState([]);
 
   const [form, setForm] = useState({
     name: "",
@@ -39,7 +37,6 @@ function EditEmployeeModal({
     experience: 0,
     skills: "",
     domain: "",
-    salary: "",
     shift: "General",
     work_location: "",
     status: "Active",
@@ -58,12 +55,6 @@ function EditEmployeeModal({
         address: { ...user?.address },
         emergency_contact: { ...user?.emergency_contact },
       });
-      const salaryArr = [];
-      for (const key in selectedEmployee.salary) {
-        salaryArr.push({ type: key, amount: selectedEmployee.salary[key] });
-      }
-
-      setSalary(salaryArr);
     }
   }, [selectedEmployee]);
 
@@ -115,7 +106,6 @@ function EditEmployeeModal({
     try {
       setLoader(true);
       const payload = preparePayload();
-      payload.salary = salary;
       const res = await fetch(`${config.BACKEND_URL}/api/employees/edit`, {
         method: "PUT",
         headers: {
@@ -401,10 +391,6 @@ function EditEmployeeModal({
               onChange={handleChange}
               className="employee-form"
             />
-          </div>
-          <div>
-            <Label required>Salary</Label>
-            <SalaryInput setSalary={setSalary} salary={salary} />
           </div>
 
           <div>

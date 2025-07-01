@@ -32,17 +32,17 @@ const addOrUpdateAccount = async (req, res) => {
 
     let account = await Account.findOne({ employee: formData.employee });
     const staticFields = {
-      bankName: formData.bankName ?? account.bankName ?? "",
-      bankAccountNo: formData.bankAccountNo ?? account.bankAccountNo ?? "",
-      bankIfscCode: formData.bankIfscCode ?? account.bankIfscCode ?? "",
-      bank_location: formData.bank_location ?? account.bank_location ?? "",
-      pan: formData.pan ?? account.pan ?? "",
-      aadhar: formData.aadhar ?? account.aadhar ?? "",
-      pfNo: formData.pfNo ?? account.pfNo ?? "",
-      uan: formData.uan ?? account.uan ?? "",
-      esiNo: formData.esiNo ?? account.esiNo ?? "",
+      bankName: formData.bankName ?? account?.bankName ?? "",
+      bankAccountNo: formData.bankAccountNo ?? account?.bankAccountNo ?? "",
+      bankIfscCode: formData.bankIfscCode ?? account?.bankIfscCode ?? "",
+      bank_location: formData.bank_location ?? account?.bank_location ?? "",
+      pan: formData.pan ?? account?.pan ?? "",
+      aadhar: formData.aadhar ?? account?.aadhar ?? "",
+      pfNo: formData.pfNo ?? account?.pfNo ?? "",
+      uan: formData.uan ?? account?.uan ?? "",
+      esiNo: formData.esiNo ?? account?.esiNo ?? "",
       taxExemptions: formData.taxExemptions ??
-        account.taxExemptions ?? {
+        account?.taxExemptions ?? {
           sec10: 0,
           sec16: 0,
           sec80C: 0,
@@ -50,11 +50,11 @@ const addOrUpdateAccount = async (req, res) => {
           sec6A: 0,
         },
       projectedIncomeTax:
-        formData.projectedIncomeTax ?? account.projectedIncomeTax ?? 0,
-      grossSalary: formData.grossSalary ?? account.grossSalary ?? 0,
-      totalIncome: formData.totalIncome ?? account.totalIncome ?? 0,
+        formData.projectedIncomeTax ?? account?.projectedIncomeTax ?? 0,
+      grossSalary: formData.grossSalary ?? account?.grossSalary ?? 0,
+      totalIncome: formData.totalIncome ?? account?.totalIncome ?? 0,
       taxStructure: formData.taxStructure ??
-        account.taxStructure ?? {
+        account?.taxStructure ?? {
           base: 0,
           educationCess: 0,
         },
@@ -77,8 +77,11 @@ const addOrUpdateAccount = async (req, res) => {
 
     await account.save();
 
-    emp.payroll = true;
-    await emp.save();
+    const role = req.query.role;
+    if (role && role == "account") {
+      emp.payroll = true;
+      await emp.save();
+    }
 
     return res
       .status(201)
@@ -153,6 +156,29 @@ const addMonthlySalaryOfEmployee = async (req, res) => {
     };
 
     account.salaryRecords.push(salaryRecord);
+
+    const { month, year, paidDays } = formData;
+
+    const lastDate = new Date(account.lastPayedDateTime);
+
+    if (month && year) {
+      account.lastPayedDateTime = new Date(`${year}-${month}-${paidDays || 1}`);
+    } else {
+      account.lastPayedDateTime = new Date();
+    }
+
+    const newDate = new Date(account.lastPayedDateTime);
+
+    //Check if the new salary date is within 26 days of the last paid date
+    const diffInMs = newDate - lastDate;
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    if (!isNaN(diffInDays) && diffInDays < 26) {
+      return res.status(400).json({
+        message:
+          "Salary cannot be processed again within 26 days of the last payment.",
+      });
+    }
 
     await account.save();
 

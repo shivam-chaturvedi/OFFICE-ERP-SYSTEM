@@ -15,13 +15,6 @@ const employeeSchema = new mongoose.Schema(
     certifications: [{ name: String, issued_by: String, date: Date }],
     tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
 
-    // Compensation
-    salary: {
-      type: Map,
-      of: Number,
-      required: true,
-    },
-
     // Work Details
     shift: { type: String, enum: ["Morning", "Evening", "Night", "General"] },
     work_location: { type: String },
@@ -44,6 +37,7 @@ const employeeSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Account",
     },
+
     payroll: {
       type: Boolean,
       default: false,

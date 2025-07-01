@@ -82,6 +82,7 @@ export function AddToPayrollFinanceAccountModal({
 
   const earningsRef = useRef();
   const deductionsRef = useRef();
+
   const [showCustomBank, setShowCustomBank] = useState(false);
 
   const [form, setForm] = useState({
@@ -177,14 +178,17 @@ export function AddToPayrollFinanceAccountModal({
 
     try {
       setLoader(true);
-      const res = await fetch(`${config.BACKEND_URL}/api/accounts/add-update`, {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("token"),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...form, salaryRecord: updatedSalaryRecord }),
-      });
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/accounts/add-update?role=account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...form, salaryRecord: updatedSalaryRecord }),
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         setAlert({ type: "success", message: data.message });
@@ -306,15 +310,6 @@ export function AddToPayrollFinanceAccountModal({
           }
         />
 
-        <label
-          className={`uppercase block ml-1 mt-2 text-lg font-medium text-gray-500`}
-        >
-          netPay :{" "}
-          <span className="font-bold text-lg ">
-            ₹{form.salaryRecord.netPay}
-          </span>
-        </label>
-
         {/* Tax Exemptions & Structure */}
         <h3 className="text-lg font-semibold mt-6 mb-2">Tax Exemptions</h3>
         <div className="grid grid-cols-2 gap-4">
@@ -374,6 +369,9 @@ export function AddToPayrollFinanceAccountModal({
               />
             </div>
           ))}
+        </div>
+        <div className="mt-4 p-3 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 text-white text-3xl font-bold shadow-lg text-center">
+          Net Pay: ₹{form?.salaryRecord?.netPay}
         </div>
 
         {/* Submit */}
@@ -533,6 +531,14 @@ export const MonthlyFinanceAccountModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.salaryRecord?.paidDays < 1 || form.salaryRecord?.paidDays > 31) {
+      setAlert({
+        type: "error",
+        message: "Paid Days should be between 1 and 31",
+      });
+      return;
+    }
+
     const updatedEarnings = earningsRef.current?.handleSubmit();
     const updatedDeductions = deductionsRef.current?.handleSubmit();
 
@@ -674,14 +680,169 @@ export const MonthlyFinanceAccountModal = ({
           }
         />
 
-        <label
-          className={`uppercase block ml-1 mt-2 text-lg font-medium text-gray-500`}
-        >
-          netPay :{" "}
-          <span className="font-bold text-lg ">
-            ₹{form.salaryRecord.netPay}
-          </span>
-        </label>
+        {/* New Income Tax Fields */}
+        <h3 className="text-lg font-semibold mt-6 mb-2">Income Tax</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            "tillDate",
+            "currentMonth",
+            "deductedTillDate",
+            "balancePayable",
+          ].map((field) => (
+            <div key={field}>
+              <label className="block text-sm font-medium text-gray-500">
+                {field.replace(/([A-Z])/g, " $1").toUpperCase()}
+              </label>
+              <input
+                type="number"
+                name={field}
+                value={form.salaryRecord.incomeTax[field]}
+                onChange={(e) => {
+                  const { name, value } = e.target;
+                  setForm((prev) => ({
+                    ...prev,
+                    salaryRecord: {
+                      ...prev.salaryRecord,
+                      incomeTax: {
+                        ...prev.salaryRecord.incomeTax,
+                        [name]: Number(value),
+                      },
+                    },
+                  }));
+                }}
+                className="employee-form"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* HRA Exemption Fields */}
+        <h3 className="text-lg font-semibold mt-6 mb-2">HRA Exemption</h3>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            "basicPaid",
+            "rentPaid",
+            "hra",
+            "rentLess10Percent",
+            "percentOfBasic",
+            "exemption",
+          ].map((field) => (
+            <div key={field}>
+              <label className="block text-sm font-medium text-gray-500">
+                {field.replace(/([A-Z])/g, " $1").toUpperCase()}
+              </label>
+              <input
+                type="number"
+                name={field}
+                value={form.salaryRecord.hraExemption[field]}
+                onChange={(e) => {
+                  const { name, value } = e.target;
+                  setForm((prev) => ({
+                    ...prev,
+                    salaryRecord: {
+                      ...prev.salaryRecord,
+                      hraExemption: {
+                        ...prev.salaryRecord.hraExemption,
+                        [name]: Number(value),
+                      },
+                    },
+                  }));
+                }}
+                className="employee-form"
+              />
+            </div>
+          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-500">
+              Is Metro
+            </label>
+            <select
+              name="isMetro"
+              value={form.salaryRecord.hraExemption.isMetro}
+              onChange={(e) => {
+                const { value } = e.target;
+                setForm((prev) => ({
+                  ...prev,
+                  salaryRecord: {
+                    ...prev.salaryRecord,
+                    hraExemption: {
+                      ...prev.salaryRecord.hraExemption,
+                      isMetro: value === "true",
+                    },
+                  },
+                }));
+              }}
+              className="employee-form"
+            >
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tax Deducted Breakup */}
+        <h3 className="text-lg font-semibold mt-6 mb-2">
+          Tax Deducted Breakup
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-500">
+              Month
+            </label>
+            <input
+              type="text"
+              name="taxMonth"
+              value={form.salaryRecord.taxDeductedBreakup[0]?.month}
+              onChange={(e) => {
+                const { value } = e.target;
+                setForm((prev) => ({
+                  ...prev,
+                  salaryRecord: {
+                    ...prev.salaryRecord,
+                    taxDeductedBreakup: [
+                      {
+                        ...prev.salaryRecord.taxDeductedBreakup[0],
+                        month: value,
+                      },
+                    ],
+                  },
+                }));
+              }}
+              className="employee-form"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-500">
+              Amount
+            </label>
+            <input
+              type="number"
+              name="taxAmount"
+              value={form.salaryRecord.taxDeductedBreakup[0]?.amount}
+              onChange={(e) => {
+                const { value } = e.target;
+                setForm((prev) => ({
+                  ...prev,
+                  salaryRecord: {
+                    ...prev.salaryRecord,
+                    taxDeductedBreakup: [
+                      {
+                        ...prev.salaryRecord.taxDeductedBreakup[0],
+                        amount: Number(value),
+                      },
+                    ],
+                  },
+                }));
+              }}
+              className="employee-form"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 rounded-2xl bg-gradient-to-r from-green-400 to-green-600 text-white text-3xl font-bold shadow-lg text-center">
+          Net Pay: ₹{form?.salaryRecord?.netPay}
+        </div>
 
         {/* Submit */}
         <div className="mt-6 flex justify-end gap-2">

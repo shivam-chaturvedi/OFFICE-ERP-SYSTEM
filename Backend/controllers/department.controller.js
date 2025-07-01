@@ -79,9 +79,10 @@ const addDepartment = async (req, res) => {
       status,
       projects,
     });
-
-    headEmployee.department = dept._id;
-    await headEmployee.save();
+    if (headEmployee) {
+      headEmployee.department = dept._id;
+      await headEmployee.save();
+    }
     res.status(201).json({
       message: "Department created successfully!",
       department: dept,

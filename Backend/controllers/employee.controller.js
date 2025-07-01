@@ -4,16 +4,6 @@ const Employee = require("../models/employee.model");
 const Department = require("../models/department.model");
 const Leave = require("../models/leave.model");
 
-function convertToSalaryObject(arr) {
-  const salaryObj = {};
-  arr.forEach(({ type, amount }) => {
-    if (type && amount !== "") {
-      salaryObj[type] = Number(amount);
-    }
-  });
-  return salaryObj;
-}
-
 const addEmployee = async (req, res) => {
   try {
     const {
@@ -36,7 +26,6 @@ const addEmployee = async (req, res) => {
       domain,
       certifications,
       projects,
-      salary,
       bonuses,
       shift,
       work_location,
@@ -97,7 +86,6 @@ const addEmployee = async (req, res) => {
       domain,
       certifications,
       projects,
-      salary: convertToSalaryObject(salary),
       bonuses,
       shift,
       work_location,
@@ -152,7 +140,6 @@ const editEmployee = async (req, res) => {
       domain,
       certifications,
       projects,
-      salary,
       bonuses,
       shift,
       work_location,
@@ -218,7 +205,6 @@ const editEmployee = async (req, res) => {
     employee.domain = domain || employee.domain;
     employee.certifications = certifications || employee.certifications;
     employee.projects = projects || employee.projects;
-    employee.salary = salary ? convertToSalaryObject(salary) : employee.salary;
     employee.bonuses = bonuses || employee.bonuses;
     employee.shift = shift || employee.shift;
     employee.work_location = work_location || employee.work_location;

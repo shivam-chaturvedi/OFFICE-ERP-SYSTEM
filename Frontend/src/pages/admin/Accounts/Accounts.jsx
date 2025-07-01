@@ -127,20 +127,6 @@ const EmployeeSalaryDashboard = () => {
   // available emp means those who are not added to payrole but available for getting added
   const availableEmployees = employees.filter((emp) => emp.payroll == false);
 
-  const getStatusStats = () => {
-    const processed = employees.filter(
-      (emp) => emp.status === "Processed"
-    ).length;
-    const pending = employees.filter((emp) => emp.status === "Pending").length;
-    const totalPayroll = employees
-      .filter((emp) => emp.payroll)
-      .reduce((sum, emp) => sum + emp?.account?.netPay, 0);
-
-    return { processed, pending, totalPayroll };
-  };
-
-  const stats = getStatusStats();
-
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
       emp?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -173,6 +159,31 @@ const EmployeeSalaryDashboard = () => {
       )
     );
   };
+
+  const getStatusStats = () => {
+    const today = new Date();
+
+    let processed = 0;
+    let pending = 0;
+    let totalPayroll = 0;
+
+    filteredEmployees.forEach((emp) => {
+      const lastPaid = new Date(emp?.account?.lastPayedDateTime);
+      const diffInMs = today - lastPaid;
+      const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+      if (!isNaN(diffInDays) && diffInDays < 26) {
+        processed++;
+      } else {
+        pending++;
+      }
+      totalPayroll += emp?.account?.netPay || 0;
+    });
+
+    return { processed, pending, totalPayroll };
+  };
+
+  const stats = getStatusStats();
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -394,14 +405,37 @@ const EmployeeSalaryDashboard = () => {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() =>
-                          setViewMonthlyFinanceAccountModal(employee)
+                      {(() => {
+                        const lastPaid = new Date(
+                          employee?.account?.lastPayedDateTime
+                        );
+                        const today = new Date();
+                        const diffInMs = today - lastPaid;
+                        const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+                        if (!isNaN(diffInDays) && diffInDays < 26) {
+                          const month = lastPaid.toLocaleString("default", {
+                            month: "long",
+                          });
+                          const year = lastPaid.getFullYear();
+                          return (
+                            <span className="text-md font-bold   text-green-800 bg-green-200 p-1 font-mono">
+                              Processed for {month} {year}
+                            </span>
+                          );
                         }
-                        className={`cursor-pointer bg-green-400 text-black  rounded-xl p-2 font-extralight font-sans`}
-                      >
-                        Mark Payed
-                      </button>
+
+                        return (
+                          <button
+                            onClick={() =>
+                              setViewMonthlyFinanceAccountModal(employee)
+                            }
+                            className="cursor-pointer bg-green-400 text-black rounded-xl p-2 font-light font-sans hover:bg-green-500"
+                          >
+                            Mark Payed
+                          </button>
+                        );
+                      })()}
                     </div>
                   </td>
                   <td className="p-4">

@@ -56,7 +56,7 @@ const SalaryInput = forwardRef(
       handleSubmit,
     }));
     return (
-      <div className="p-4 border rounded-lg bg-white shadow-sm w-full max-w-xl mt-4">
+      <div className="p-4 border rounded-lg bg-white shadow-sm w-full max-w-xl mt-4 mr-4">
         {alert && <Alert alert={alert} setAlert={setAlert} />}
         <div className="flex justify-between items-center mb-4">
           <label className="text-lg font-semibold">{title}</label>

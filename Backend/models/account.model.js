@@ -24,7 +24,7 @@ const accountSchema = new mongoose.Schema(
     earnings: { type: Map, of: Number },
     deductions: { type: Map, of: Number },
     netPay: Number,
-    
+
     // One-Time Tax Exemption & Income Tax Structure
     taxExemptions: {
       sec10: Number,
@@ -40,6 +40,7 @@ const accountSchema = new mongoose.Schema(
       base: Number,
       educationCess: Number,
     },
+    lastPayedDateTime: { type: Date },
 
     // Monthly salary records
     salaryRecords: [

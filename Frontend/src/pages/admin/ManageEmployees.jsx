@@ -475,7 +475,7 @@ export default function ManageEmployees() {
                     <label className="block text-sm font-medium text-gray-500">
                       Department
                     </label>
-                    <p className="text-sm text-gray-900 mt-1">
+                    <p className="text-lg uppercase font-bold text-purple-400 mt-1">
                       {selectedEmployee?.department?.name || "N/A"}
                     </p>
                   </div>
@@ -516,36 +516,60 @@ export default function ManageEmployees() {
 
             {/* Salary Information */}
             <div className="mt-6 pt-6 border-t">
-              <h4 className="text-lg font-medium text-gray-900 mb-4">
+              <h4 className="text-xl font-bold text-gray-800 mb-6 border-b pb-2">
                 Salary Information
               </h4>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {Object.keys(selectedEmployee.salary).map((key, idx) => (
-                    <div key={idx}>
-                      <label className="block text-sm font-medium text-gray-500">
-                        {key}
-                      </label>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">
-                        ₹{selectedEmployee?.salary[key] || "0"}
-                      </p>
-                    </div>
-                  ))}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">
-                      Total Salary
-                    </label>
-                    <p className="text-lg font-semibold text-blue-600 mt-1">
-                      ₹
-                      {selectedEmployee?.salary
-                        ? Object.values(selectedEmployee.salary)
-                            .reduce((acc, val) => acc + val, 0)
-                            .toLocaleString()
-                        : "0"}
-                    </p>
-                  </div>
+              {/* Earnings */}
+              <h5 className="text-lg font-semibold text-green-700 mb-2">
+                Earnings
+              </h5>
+              <div className="bg-green-50 rounded-xl p-4 mb-6 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {Object.entries(selectedEmployee?.account?.earnings || {})
+                    .filter(([_, value]) => value >= 1)
+                    .map(([key, value], idx) => (
+                      <div key={idx}>
+                        <label className="block text-sm font-medium text-gray-500">
+                          {key}
+                        </label>
+                        <p className="text-lg font-semibold text-gray-900 mt-1">
+                          ₹{value}
+                        </p>
+                      </div>
+                    ))}
                 </div>
+              </div>
+
+              {/* Deductions */}
+              <h5 className="text-lg font-semibold text-red-700 mb-2">
+                Deductions
+              </h5>
+              <div className="bg-red-50 rounded-xl p-4 mb-6 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {Object.entries(selectedEmployee?.account?.deductions || {})
+                    .filter(([_, value]) => value >= 1)
+                    .map(([key, value], idx) => (
+                      <div key={idx}>
+                        <label className="block text-sm font-medium text-gray-500">
+                          {key}
+                        </label>
+                        <p className="text-lg font-semibold text-gray-900 mt-1">
+                          ₹{value}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Net Pay */}
+              <div className="bg-blue-100 rounded-xl p-4 text-center shadow">
+                <h5 className="text-lg font-bold text-blue-700 mb-1">
+                  Net Pay
+                </h5>
+                <p className="text-3xl font-bold text-blue-800">
+                  ₹{selectedEmployee?.account?.netPay || 0}
+                </p>
               </div>
             </div>
 
