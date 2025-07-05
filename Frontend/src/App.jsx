@@ -47,7 +47,7 @@ function App() {
   const isMobile = useIsMobile();
 
        useEffect(() => {
-     setUser({ name: "TestUser", role: "admin" });
+     setUser({ name: "TestUser", role: "hr" });
     setLoading(false);
  }, []);
 
@@ -108,7 +108,10 @@ function App() {
 
   const ProtectedRoute = ({ children, role }) => {
     if (!user) return <Navigate to="/login" />;
-    if (role && user.role !== role) return <Navigate to="/" />;
+    if (role && ![...(Array.isArray(role) ? role : [role])].includes(user.role)) {
+  return <Navigate to="/" />;
+}
+
 
     return (
       <div className="flex">
@@ -164,7 +167,7 @@ function App() {
         <Route
           path="/manage-users"
           element={
-            <ProtectedRoute role="admin">
+           <ProtectedRoute role={["admin", "hr"]}>
               <ManageUsers />
             </ProtectedRoute>
           }
@@ -188,7 +191,7 @@ function App() {
         <Route
           path="/manage-leaves"
           element={
-            <ProtectedRoute role="admin">
+           <ProtectedRoute role={["admin", "hr"]}>
               <ManageLeaves />
             </ProtectedRoute>
           }
@@ -205,7 +208,7 @@ function App() {
         <Route
           path="/manage-employees"
           element={
-            <ProtectedRoute role="admin">
+            <ProtectedRoute role={["admin", "hr"]}>
               <ManageEmployees />
             </ProtectedRoute>
           }
@@ -214,7 +217,7 @@ function App() {
         <Route
           path="/manage-trainees"
           element={
-            <ProtectedRoute role="admin">
+             <ProtectedRoute role={["admin", "hr"]}>
               <ManageTrainees />
             </ProtectedRoute>
           }
@@ -223,7 +226,7 @@ function App() {
         <Route
           path="/manage-tasks"
           element={
-            <ProtectedRoute role="admin">
+           <ProtectedRoute role={["admin", "hr"]}>
               <ManageTasks />
             </ProtectedRoute>
           }
