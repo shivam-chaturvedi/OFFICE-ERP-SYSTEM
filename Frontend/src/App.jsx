@@ -235,7 +235,7 @@ function App() {
         <Route
           path="/clients"
           element={
-            <ProtectedRoute role="admin">
+            <ProtectedRoute role={["admin","hr"]}>
               <ManageClients />
             </ProtectedRoute>
           }
@@ -244,7 +244,7 @@ function App() {
         <Route
           path="/manage-teams"
           element={
-            <ProtectedRoute role="admin">
+            <ProtectedRoute role={["admin","hr"]}>
               <ManageTeams />
             </ProtectedRoute>
           }
@@ -253,7 +253,7 @@ function App() {
         <Route
           path="/manage-departments"
           element={
-            <ProtectedRoute role="admin">
+            <ProtectedRoute role={["admin","hr"]}>
               <ManageDepartments />
             </ProtectedRoute>
           }

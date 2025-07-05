@@ -32,10 +32,13 @@ const Home = ({ user, setUser }) => {
                   );
                 })}
             </div>
-            <h1 className="capitalize text-2xl font-bold text-gray-800">
-              Welcome,{" "}
-              <span className="text-yellow-600">{user?.name || "User"}!</span>
-            </h1>
+           <h1 className="capitalize text-2xl font-bold text-gray-800">
+  Welcome,{" "}
+  <span className="text-yellow-600">
+    {isAdmin ? "Admin" : isHR ? "HR" : isEmployee ? "Employee" : "User"}!
+  </span>
+</h1>
+
             {user.roles?.length > 1 && (
               <h2 className="text-xl shadow-lg shadow-amber-200 w-full max-w-sm mt-2 uppercase  mb-2 font-bold text-yellow-600">
                 Viewing As {user?.role}
@@ -210,55 +213,68 @@ const Home = ({ user, setUser }) => {
 
           {/* HR */}
           {isHR && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                {user?.stats?.map((stat, idx) => (
-                  <div key={idx} className="bg-white rounded-xl shadow p-4">
-                    <h2 className="text-sm text-gray-500">{stat.label}</h2>
-                    <p className="text-xl font-semibold text-gray-800">
-                      {stat.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
+  <>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+      {user?.stats?.map((stat, idx) => (
+        <div key={idx} className="bg-white rounded-xl shadow p-4">
+          <h2 className="text-sm text-gray-500">{stat.label}</h2>
+          <p className="text-xl font-semibold text-gray-800">
+            {stat.value}
+          </p>
+        </div>
+      ))}
+    </div>
 
-              <h2 className="text-lg font-bold text-gray-700 mb-2">
-                Quick Actions
-              </h2>
-              <div className="flex flex-wrap gap-4 mb-6">
-                <button
-                  onClick={() => navigate("/hr-employee-directory")}
-                  className={buttonStyle}
-                >
-                  Employee Directory
-                </button>
-                <button
-                  onClick={() => navigate("/hr-leave-approvals")}
-                  className={buttonStyle}
-                >
-                  Leave Approvals
-                </button>
-                <button
-                  onClick={() => navigate("/hr-reports")}
-                  className={buttonStyle}
-                >
-                  Reports
-                </button>
-                <button
-                  onClick={() => navigate("/hr-notices")}
-                  className={buttonStyle}
-                >
-                  Notices
-                </button>
-                <button
-                  onClick={() => navigate("/hr-recruitments")}
-                  className={buttonStyle}
-                >
-                  Recruitments
-                </button>
-              </div>
-            </>
-          )}
+    <h2 className="text-lg font-bold text-gray-700 mb-2">
+      Quick Actions
+    </h2>
+    <div className="flex flex-wrap gap-4 mb-6">
+      {/* HR + Shared Admin Pages */}
+      <button onClick={() => navigate("/manage-employees")} className={buttonStyle}>
+        Manage Employees
+      </button>
+      <button onClick={() => navigate("/manage-trainees")} className={buttonStyle}>
+        Manage Trainees
+      </button>
+      <button onClick={() => navigate("/manage-tasks")} className={buttonStyle}>
+        Manage Tasks
+      </button>
+      <button onClick={() => navigate("/manage-leaves")} className={buttonStyle}>
+        Manage Leaves
+      </button>
+      <button onClick={() => navigate("/clients")} className={buttonStyle}>
+        Manage Clients
+      </button>
+      <button onClick={() => navigate("/manage-departments")} className={buttonStyle}>
+        Manage Departments
+      </button>
+      <button onClick={() => navigate("/manage-teams")} className={buttonStyle}>
+        Manage Teams
+      </button>
+      <button onClick={() => navigate("/manage-users")} className={buttonStyle}>
+        Manage Users
+      </button>
+
+      {/* HR Specific */}
+      <button onClick={() => navigate("/hr-employee-directory")} className={buttonStyle}>
+        Employee Directory
+      </button>
+      <button onClick={() => navigate("/hr-leave-approvals")} className={buttonStyle}>
+        Leave Approvals
+      </button>
+      <button onClick={() => navigate("/hr-reports")} className={buttonStyle}>
+        Reports
+      </button>
+      <button onClick={() => navigate("/hr-notices")} className={buttonStyle}>
+        Notices
+      </button>
+      <button onClick={() => navigate("/hr-recruitments")} className={buttonStyle}>
+        Recruitments
+      </button>
+    </div>
+  </>
+)}
+
           {/* Recent Activity */}
           <div className="mt-8">
             <h2 className="text-lg font-bold text-gray-700 mb-4">
