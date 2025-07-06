@@ -38,27 +38,21 @@ const Tasks = ({ user }) => {
   const stats = [
     {
       title: "Total Tasks",
-      value: "3",
+      value: "0",
       subtitle: "Completed",
       icon: "🎯",
     },
     {
       title: "In Progress",
-      value: "1",
+      value: "0",
       subtitle: "Active tasks",
       icon: "⏳",
     },
     {
       title: "Team Members",
-      value: "3",
+      value: "-",
       subtitle: "Active members",
       icon: "👥",
-    },
-    {
-      title: "Completion Rate",
-      value: "33%",
-      subtitle: "This month",
-      icon: "📈",
     },
   ];
 
@@ -138,7 +132,7 @@ const Tasks = ({ user }) => {
   ];
 
   const tabs = ["My Tasks", "Team Management", "Resources", "Analytics"];
-  const statusOptions = ["To Do", "In Progress", "Done"];
+  const statusOptions = [ "In Progress", "Done"];
 
   const openUpdateModal = (task) => {
     setSelectedTask(task);
@@ -426,6 +420,7 @@ const Tasks = ({ user }) => {
                   <MoreHorizontal className="w-5 h-5" />
                 </button>
               </div>
+              <p className="text-sm text-gray-600 mb-2 mt-2 uppercase">Task ID : {task._id}</p>
 
               <p className="capitalize text-sm mb-4">{task.description}</p>
 

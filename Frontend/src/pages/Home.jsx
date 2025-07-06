@@ -19,7 +19,9 @@ const Home = ({ user, setUser }) => {
             <div>
               {user.roles?.length > 1 &&
                 user.roles.map((role) => {
-                  return (
+                  return ["admin", "hr", "employee"].includes(
+                    role.toLowerCase()
+                  ) ? (
                     <button
                       key={role}
                       className="hover:bg-orange-600 uppercase hover:text-white px-4 py-2 m-2 rounded cursor-pointer bg-orange-300 text-black transition"
@@ -29,7 +31,7 @@ const Home = ({ user, setUser }) => {
                     >
                       View As {role}
                     </button>
-                  );
+                  ) : null;
                 })}
             </div>
             <h1 className="capitalize text-2xl font-bold text-gray-800">

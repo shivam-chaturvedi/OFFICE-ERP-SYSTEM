@@ -99,7 +99,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
     ],
     hr: [
       { icon: <Home size={20} />, label: "Home", to: "/" },
-      { icon: <Users size={20} />, label: "Employee Directory", to: "/hr-employee-directory" },
+      { icon: <UserCog size={20} />, label: "Manage Employees", to: "/hr-manage-employees" },
       { icon: <CalendarCheck size={20} />, label: "Leave Approvals", to: "/hr-leave-approvals" },
       { icon: <FileText size={20} />, label: "Reports", to: "/hr-reports" },
       { icon: <Bell size={20} />, label: "Notices", to: "/hr-notices" },

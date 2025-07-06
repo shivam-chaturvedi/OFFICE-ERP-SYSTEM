@@ -622,23 +622,29 @@ const LeaveManagementSystem = () => {
               Distribution of leave requests by department
             </p>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={departmentData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {departmentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              {departmentData && departmentData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={departmentData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {departmentData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <h1 className="text-2xl text-center text-yellow-800">
+                  No Record Found{" "}
+                </h1>
+              )}
             </div>
           </div>
 
@@ -651,14 +657,20 @@ const LeaveManagementSystem = () => {
               Breakdown of leave types requested
             </p>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={leaveTypesData}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {leaveTypesData && leaveTypesData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={leaveTypesData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <h1 className="text-2xl text-center text-yellow-800">
+                  No Record Found{" "}
+                </h1>
+              )}
             </div>
           </div>
         </div>
@@ -768,91 +780,105 @@ const LeaveManagementSystem = () => {
                   </th>
                 </tr>
               </thead>
+
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRequests.map((request) => (
-                  <tr key={request._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedRequests.includes(request._id)}
-                        onChange={() => handleSelectRequest(request._id)}
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <div className="capitalize text-sm font-medium text-blue-600">
-                          {request?.employee?.user?.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {request?.employee?._id}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-lg text-purple-400 uppercase font-semibold">
-                      {request?.employee?.department?.name}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {new Date(request.startDateTime).toLocaleString()}
-                    </td>
+                {filteredRequests && filteredRequests.length > 0 ? (
+                  <>
+                    {filteredRequests.map((request) => (
+                      <tr key={request._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedRequests.includes(request._id)}
+                            onChange={() => handleSelectRequest(request._id)}
+                            className="rounded border-gray-300"
+                          />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="capitalize text-sm font-medium text-blue-600">
+                              {request?.employee?.user?.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {request?.employee?._id}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-lg text-purple-400 uppercase font-semibold">
+                          {request?.employee?.department?.name}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {new Date(request.startDateTime).toLocaleString()}
+                        </td>
 
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {new Date(request.endDateTime).toLocaleString()}
-                    </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          {new Date(request.endDateTime).toLocaleString()}
+                        </td>
 
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      <span className="bg-yellow-200 p-1 rounded-2xl ">
-                        {request.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 capitalize">
-                      {request.reason}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2 py-1 text-sm font-medium rounded-full ${
-                          request.status === "Pending"
-                            ? "bg-yellow-200 text-yellow-800"
-                            : request.status === "Approved"
-                            ? "bg-green-200 text-green-800"
-                            : "bg-red-200 text-red-800"
-                        }`}
-                      >
-                        {request.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        {request.status === "Pending" ? (
-                          <>
-                            <button
-                              onClick={() => handleApprove(request._id)}
-                              className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
-                            >
-                              <Check size={14} />
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => handleReject(request._id)}
-                              className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                            >
-                              <X size={14} />
-                              Reject
-                            </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => handleView(request)}
-                            className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <span className="bg-yellow-200 p-1 rounded-2xl ">
+                            {request.type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 capitalize">
+                          {request.reason}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`inline-flex px-2 py-1 text-sm font-medium rounded-full ${
+                              request.status === "Pending"
+                                ? "bg-yellow-200 text-yellow-800"
+                                : request.status === "Approved"
+                                ? "bg-green-200 text-green-800"
+                                : "bg-red-200 text-red-800"
+                            }`}
                           >
-                            <Eye size={14} />
-                            View
-                          </button>
-                        )}
-                      </div>
+                            {request.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            {request.status === "Pending" ? (
+                              <>
+                                <button
+                                  onClick={() => handleApprove(request._id)}
+                                  className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                                >
+                                  <Check size={14} />
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleReject(request._id)}
+                                  className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                                >
+                                  <X size={14} />
+                                  Reject
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => handleView(request)}
+                                className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                              >
+                                <Eye size={14} />
+                                View
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </>
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="text-center py-10 text-xl text-yellow-800"
+                    >
+                      No Record Found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

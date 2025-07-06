@@ -35,3 +35,9 @@ exports.verifyAdmin = (req, res, next) => {
   }
   next();
 };
+exports.verifyHrOrAdmin = (req, res, next) => {
+  if (!req.user?.roles.includes("admin") && !req.user?.roles.includes("hr")) {
+    return res.status(403).json({ message: "Access denied" });
+  }
+  next();
+};

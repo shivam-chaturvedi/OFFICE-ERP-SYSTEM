@@ -26,8 +26,6 @@ import Attendance from "./pages/employee/Attendance";
 import Tasks from "./pages/employee/Tasks";
 import Announcements from "./pages/employee/Announcements";
 
-import HREmployeeDirectory from "./pages/hr/HREmployeeDirectory";
-import HRLeaveApprovals from "./pages/hr/HRLeaveApprovals";
 import HRReports from "./pages/hr/HRReports";
 import HRNotices from "./pages/hr/HRNotices";
 import Recruitments from "./pages/hr/Recruitments";
@@ -46,10 +44,10 @@ function App() {
   const [expanded, setExpanded] = useState(true);
   const isMobile = useIsMobile();
 
-       useEffect(() => {
-     setUser({ name: "TestUser", role: "admin" });
-    setLoading(false);
- }, []);
+  // useEffect(() => {
+  //   setUser({ name: "TestUser", role: "admin" });
+  //   setLoading(false);
+  // }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -57,7 +55,6 @@ function App() {
       setLoading(false);
       return;
     }
-
 
     const verify = async () => {
       try {
@@ -108,6 +105,7 @@ function App() {
 
   const ProtectedRoute = ({ children, role }) => {
     if (!user) return <Navigate to="/login" />;
+
     if (role && user.role !== role) return <Navigate to="/" />;
 
     return (
@@ -294,7 +292,7 @@ function App() {
           path="/my-attendance"
           element={
             <ProtectedRoute role="employee">
-              <Attendance />
+              <Attendance user={user} />
             </ProtectedRoute>
           }
         />
@@ -315,23 +313,24 @@ function App() {
           }
         />
         {/* HR Routes */}
-        <Route
-          path="/hr-employee-directory"
-          element={
-            <ProtectedRoute role="hr">
-                    <HREmployeeDirectory />   {" "}
-            </ProtectedRoute>
-          }
-        />
 
         <Route
           path="/hr-leave-approvals"
           element={
             <ProtectedRoute role="hr">
-                    <HRLeaveApprovals />   {" "}
+                    <ManageLeaves />   {" "}
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/hr-manage-employees"
+          element={
+            <ProtectedRoute role="hr">
+              <ManageEmployees />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/hr-reports"
           element={

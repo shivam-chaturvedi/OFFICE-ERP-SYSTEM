@@ -9,7 +9,10 @@ const taskRoutes = require("./routes/task.routes");
 const path = require("path");
 const accountRoutes = require("./routes/account.routes");
 const leaveRoutes = require("./routes/leave.routes");
+const permissionRoutes = require("./routes/permission.routes");
 const authMiddleware = require("./middlewares/auth.middleware");
+const attendanceRoutes = require("./routes/attendence.routes");
+
 require("dotenv").config();
 
 const cors = require("cors");
@@ -44,7 +47,7 @@ mongoose
           phone: "1234567891",
           email: "admin@gmail.com",
           password: pass,
-        }); 
+        });
         console.log("Created Admin User " + adminUser);
       } catch (err) {
         console.log(err.message);
@@ -61,6 +64,8 @@ app.use("/api/teams", teamRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/leaves", leaveRoutes);
+app.use("/api/permissions", permissionRoutes);
+app.use("/api/attendence", attendanceRoutes);
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {

@@ -430,14 +430,12 @@ const ManageTasks = () => {
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="uppercase flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-6 p-4 bg-white border border-gray-200 rounded-xl shadow-md w-full max-w-xl ">
-                          <h3 className=" text-lg sm:text-xl font-semibold text-indigo-600 tracking-wide">
-                            {task.title}
-                          </h3>
-                          <h3 className="text-sm sm:text-md font-medium text-gray-500 break-all">
-                            # {task._id}
-                          </h3>
-                        </div>
+                        <h3 className="uppercase text-lg sm:text-xl font-semibold text-indigo-600 tracking-wide">
+                          {task.title}
+                        </h3>
+                        <h3 className=" uppercase text-sm sm:text-md font-medium text-gray-500 break-all">
+                          task ID : {task._id}
+                        </h3>
 
                         <p className="text-sm text-gray-600 mb-3">
                           {task.description}

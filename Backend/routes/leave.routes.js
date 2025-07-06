@@ -4,17 +4,17 @@ const authMiddleware = require("../middlewares/auth.middleware");
 
 const leaveController = require("../controllers/leave.controller");
 
-router.get("/", authMiddleware.verifyAdmin, leaveController.getAllLeaves);
+router.get("/", authMiddleware.verifyHrOrAdmin, leaveController.getAllLeaves);
 
 router.put(
   "/approve/:id",
-  authMiddleware.verifyAdmin,
+  authMiddleware.verifyHrOrAdmin,
   leaveController.approveRequest
 );
 
 router.put(
   "/reject/:id",
-  authMiddleware.verifyAdmin,
+  authMiddleware.verifyHrOrAdmin,
   leaveController.rejectRequest
 );
 
