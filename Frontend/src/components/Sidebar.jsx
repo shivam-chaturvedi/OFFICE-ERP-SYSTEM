@@ -28,6 +28,18 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
   const toggleSidebar = () => {
     setExpanded((prev) => !prev);
   };
+ const sharedAdminHrItems = [
+  { icon: <UserCog size={20} />, label: "Manage Employees", to: "/manage-employees" },
+  { icon: <UserPlus size={20} />, label: "Manage Trainees", to: "/manage-trainees" },
+  { icon: <ListTodo size={20} />, label: "Manage Tasks", to: "/manage-tasks" },
+  { icon: <CalendarCheck size={20} />, label: "Manage Leaves", to: "/manage-leaves" },
+  { icon: <Briefcase size={20} />, label: "Manage Clients", to: "/clients" },
+  { icon: <Users size={20} />, label: "Manage Departments", to: "/manage-departments" },
+  { icon: <Users size={20} />, label: "Manage Teams", to: "/manage-teams" },
+  { icon: <Users size={20} />, label: "Manage Users", to: "/manage-users" },
+];
+
+
 
   const logout = () => {
     if (window.confirm("Are you sure you want to logout?")) {
@@ -36,6 +48,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
       navigate("/login");
     }
   };
+  
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -97,14 +110,23 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
       { icon: <FileText size={20} />, label: "Tasks / Projects", to: "/tasks" },
       { icon: <Bell size={20} />, label: "Announcements", to: "/announcements" },
     ],
-    hr: [
-      { icon: <Home size={20} />, label: "Home", to: "/" },
-      { icon: <UserCog size={20} />, label: "Manage Employees", to: "/hr-manage-employees" },
-      { icon: <CalendarCheck size={20} />, label: "Leave Approvals", to: "/hr-leave-approvals" },
-      { icon: <FileText size={20} />, label: "Reports", to: "/hr-reports" },
-      { icon: <Bell size={20} />, label: "Notices", to: "/hr-notices" },
-      { icon: <Settings size={20} />, label: "Recruitments", to: "/hr-recruitments" },
-    ],
+   hr: [
+  { icon: <Home size={20} />, label: "Home", to: "/" },
+  { icon: <UserCog size={20} />, label: "Manage Employees", to: "/manage-employees" },
+  { icon: <UserPlus size={20} />, label: "Manage Trainees", to: "/manage-trainees" },
+  { icon: <ListTodo size={20} />, label: "Manage Tasks", to: "/manage-tasks" },
+  { icon: <CalendarCheck size={20} />, label: "Manage Leaves", to: "/manage-leaves" },
+  { icon: <Briefcase size={20} />, label: "Clients", to: "/clients" },
+  { icon: <Users size={20} />, label: "Manage Departments", to: "/manage-departments" },
+  { icon: <Users size={20} />, label: "Manage Teams", to: "/manage-teams" },
+  { icon: <Users size={20} />, label: "Manage Users", to: "/manage-users" },
+  { icon: <Users size={20} />, label: "Employee Directory", to: "/hr-employee-directory" },
+  { icon: <CalendarCheck size={20} />, label: "Leave Approvals", to: "/hr-leave-approvals" },
+  { icon: <FileText size={20} />, label: "Reports", to: "/hr-reports" },
+  { icon: <Bell size={20} />, label: "Notices", to: "/hr-notices" },
+  { icon: <Settings size={20} />, label: "Recruitments", to: "/hr-recruitments" },
+],
+
   };
 
   const renderNavItems = (items) =>
@@ -181,7 +203,10 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
             </div>
           )}
           {user?.role === "employee" && renderNavItems(navItemsByRole.employee)}
-          {user?.role === "hr" && renderNavItems(navItemsByRole.hr)}
+        {user?.role === "hr" && renderNavItems(navItemsByRole.hr)}
+
+
+
         </div>
 
         {/* Bottom Buttons */}
