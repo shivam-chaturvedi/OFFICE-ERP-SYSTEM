@@ -18,48 +18,39 @@ const AttendanceTracker = ({ user }) => {
   const [attendanceData, setAttendanceData] = useState({});
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [filterPeriod, setFilterPeriod] = useState("This Week");
-
   const [loader, setLoader] = useState(false);
   const [alert, setAlert] = useState({});
 
-  useEffect(() => {
-    const fetchAttendance = async () => {
-      try {
-        setLoader(true);
-        const res = await fetch(
-          `${config.BACKEND_URL}/api/attendence/${user._id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        const data = await res.json();
-        if (res.ok && data?.attendance?.records?.length > 0) {
-          const formatted = {};
-          data.attendance.records.forEach((rec) => {
-            const date = new Date(rec.date).toISOString().split("T")[0];
-            formatted[date] = rec.status;
-          });
-          setAttendanceData(formatted);
-        } else {
-          setAttendanceData({});
-          setAlert({
-            type: "error",
-            message: data.message || "No records found",
-          });
+  let absent = 0;
+  const fetchAttendance = async () => {
+    try {
+      setLoader(true);
+      const res = await fetch(
+        `${config.BACKEND_URL}/api/attendence/${user._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-      } catch (err) {
-        setAlert({ type: "error", message: err.message });
-      } finally {
-        setLoader(false);
+      );
+      const data = await res.json();
+      if (res.ok && data?.attendance?.records?.length > 0) {
+        const formatted = {};
+        data.attendance.records.forEach((rec) => {
+          const date = new Date(rec.date).toISOString().split("T")[0];
+          formatted[date] = rec.status;
+        });
+        setAttendanceData(formatted);
       }
-    };
-
-    if (user?._id) {
-      fetchAttendance();
+    } catch (err) {
+      console.log(err.message);
+    } finally {
+      setLoader(false);
     }
+  };
+
+  useEffect(() => {
+    if (user?._id) fetchAttendance();
   }, [user?._id]);
 
   const markAttendance = async () => {
@@ -73,63 +64,21 @@ const AttendanceTracker = ({ user }) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            employeeId: user._id,
-          }),
+          body: JSON.stringify({ employeeId: user._id }),
         }
       );
       const data = await res.json();
       if (res.ok) {
-        setAlert({
-          type: "success",
-          message: data.message,
-        });
+        setAlert({ type: "success", message: data.message });
+        fetchAttendance();
       } else {
-        setAlert({
-          type: "error",
-          message: data.message,
-        });
+        setAlert({ type: "error", message: data.message });
       }
     } catch (err) {
-      setAlert({
-        type: "error",
-        message: err.message,
-      });
+      setAlert({ type: "error", message: err.message });
     } finally {
       setLoader(false);
     }
-  };
-
-  const getTodayStatus = () => {
-    const today = currentDate.toISOString().split("T")[0];
-    return attendanceData[today] || null;
-  };
-
-  const getAttendanceStats = () => {
-    const entries = Object.entries(attendanceData);
-    const present = entries.filter(
-      ([_, status]) => status === "present"
-    ).length;
-    const absent = entries.filter(([_, status]) => status === "absent").length;
-    const total = entries.length;
-    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-
-    // Calculate current streak
-    const sortedDates = entries
-      .map(([date]) => date)
-      .sort()
-      .reverse();
-
-    let streak = 0;
-    for (const date of sortedDates) {
-      if (attendanceData[date] === "present") {
-        streak++;
-      } else {
-        break;
-      }
-    }
-
-    return { present, absent, total, rate, streak };
   };
 
   const getCalendarDays = () => {
@@ -138,41 +87,66 @@ const AttendanceTracker = ({ user }) => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDay = firstDay.getDay();
-
+    const startingDay = firstDay.getDay() || 7;
     const days = [];
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDay; i++) {
-      days.push(null);
-    }
-
-    // Add days of the month
+    for (let i = 1; i < startingDay; i++) days.push(null);
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${(month + 1).toString().padStart(2, "0")}-${day
         .toString()
         .padStart(2, "0")}`;
+      const dateObj = new Date(dateStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      let status = "no-record";
+
+      if (attendanceData[dateStr]) {
+        status = attendanceData[dateStr];
+      } else if (dateObj <= today) {
+        status = "absent";
+        absent++;
+      }
+
       days.push({
         day,
         date: dateStr,
-        status: attendanceData[dateStr] || "no-record",
+        status,
       });
     }
-
     return days;
   };
 
+  const getTodayStatus = () => {
+    const today = currentDate.toISOString().split("T")[0];
+    return attendanceData[today] || null;
+  };
+
+  const getAttendanceStats = () => {
+    const year = selectedYear;
+    const month = selectedMonth;
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+
+    const entries = Object.entries(attendanceData);
+    const present = entries.filter(
+      ([_, status]) => status === "present"
+    ).length;
+    const leave = entries.filter(([_, status]) => status === "leave").length;
+
+    const total = daysInMonth;
+    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+
+    return { present, leave, total, rate };
+  };
+
   const getAttendanceHistory = () => {
-    const entries = Object.entries(attendanceData)
+    return Object.entries(attendanceData)
       .map(([date, status]) => ({
         date,
         status,
         day: new Date(date).toLocaleDateString("en-US", { weekday: "long" }),
       }))
       .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 10); // Show last 10 entries
-
-    return entries;
+      .slice(0, 10);
   };
 
   const stats = getAttendanceStats();
@@ -287,7 +261,7 @@ const AttendanceTracker = ({ user }) => {
 
             <div className="flex space-x-3">
               <button
-                onClick={() => markAttendance("present")}
+                onClick={() => markAttendance()}
                 disabled={todayStatus === "present"}
                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                   todayStatus === "present"
@@ -296,17 +270,6 @@ const AttendanceTracker = ({ user }) => {
                 }`}
               >
                 Mark Present
-              </button>
-              <button
-                onClick={() => markAttendance("absent")}
-                disabled={todayStatus === "absent"}
-                className={`px-6 py-2 rounded-lg font-medium transition-colors ${
-                  todayStatus === "absent"
-                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600 text-white"
-                }`}
-              >
-                Mark Absent
               </button>
             </div>
           </div>
@@ -352,12 +315,12 @@ const AttendanceTracker = ({ user }) => {
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm">Current Streak</p>
+                <p className="text-gray-600 text-sm">Absent Days</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {stats.streak}
+                  {absent}
                 </p>
               </div>
-              <div className="w-8 h-8 text-orange-600">🔥</div>
+              <Calendar className="w-8 h-8 text-orange-600" />
             </div>
           </div>
 
@@ -470,10 +433,10 @@ const AttendanceTracker = ({ user }) => {
                 </div>
                 <div className="flex items-center">
                   <span className="text-lg font-bold text-red-600 mr-2">
-                    {stats.absent}
+                    {absent}
                   </span>
                   <span className="text-sm text-gray-500">
-                    ({Math.round((stats.absent / stats.total) * 100)}%)
+                    ({Math.round((absent / stats.total) * 100)}%)
                   </span>
                 </div>
               </div>
@@ -517,6 +480,12 @@ const AttendanceTracker = ({ user }) => {
                   <option value={2024}>2024</option>
                   <option value={2025}>2025</option>
                   <option value={2026}>2026</option>
+                  <option value={2027}>2027</option>
+                  <option value={2028}>2028</option>
+                  <option value={2029}>2029</option>
+                  <option value={2030}>2030</option>
+                  <option value={2031}>2031</option>
+                  <option value={2032}>2032</option>
                 </select>
               </div>
             </div>
@@ -591,15 +560,6 @@ const AttendanceTracker = ({ user }) => {
                 </p>
               </div>
               <div className="flex space-x-2">
-                <select
-                  value={filterPeriod}
-                  onChange={(e) => setFilterPeriod(e.target.value)}
-                  className="border border-gray-300 rounded px-3 py-1 text-sm"
-                >
-                  <option>This Week</option>
-                  <option>This Month</option>
-                  <option>Last 30 Days</option>
-                </select>
                 <button className="flex items-center px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
                   <Download className="w-4 h-4 mr-1" />
                   Export CSV

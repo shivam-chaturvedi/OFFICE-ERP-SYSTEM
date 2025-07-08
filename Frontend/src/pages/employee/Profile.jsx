@@ -139,7 +139,7 @@ const Profile = ({ user }) => {
               {user._id}
             </p>
             <p className="text-purple-400">
-              <strong>Department:</strong> {employee.department?.name}
+              <strong>Department:</strong> {employee?.department?.name || "N/A"}
             </p>
             <p>
               <strong>Reports to:</strong> Admin
@@ -151,12 +151,18 @@ const Profile = ({ user }) => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-center mt-8">
           <div className="bg-white p-4 rounded-lg shadow-md">
             <p className="text-xl font-bold text-gray-800">
-              {employee.tasks?.length || 0}
+              {employee?.tasks?.length || 0}
             </p>
             <p className="text-sm text-gray-500">Task Assigned</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
-            <p className={`text-xl font-bold text-gray-800 ${employee.status=="Active"?"text-green-600":"text-red-600"}`}>{employee.status}</p>
+            <p
+              className={`text-xl font-bold text-gray-800 ${
+                employee?.status == "Active" ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {employee?.status}
+            </p>
             <p className="text-sm text-gray-500">Status</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow-md">
@@ -168,7 +174,7 @@ const Profile = ({ user }) => {
           <div className="bg-white p-4 rounded-lg shadow-md col-span-2 sm:col-span-1">
             <p className="text-sm text-gray-500">Joined</p>
             <p className="text-md font-semibold text-gray-800">
-              {new Date(employee.date_of_joining).toLocaleDateString()}
+              {new Date(employee?.date_of_joining).toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -197,7 +203,7 @@ const Profile = ({ user }) => {
             Current Projects
           </h3>
           <ul className="space-y-5 ">
-            {employee.tasks?.map(({ title, deadline, status }, idx) => (
+            {employee?.tasks?.map(({ title, deadline, status }, idx) => (
               <li
                 key={idx}
                 className="flex justify-between items-center border rounded-md p-4 hover:shadow-md transition-shadow"

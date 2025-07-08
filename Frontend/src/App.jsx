@@ -105,11 +105,12 @@ function App() {
 
   const ProtectedRoute = ({ children, role }) => {
     if (!user) return <Navigate to="/login" />;
+
     if (
       role &&
       ![...(Array.isArray(role) ? role : [role])].includes(user.role)
     ) {
-      return <Navigate to="/" />;
+      // return <Navigate to="/" />;
     }
 
     return (
@@ -166,7 +167,7 @@ function App() {
         <Route
           path="/manage-users"
           element={
-            <ProtectedRoute role={["admin", "hr"]}>
+            <ProtectedRoute role={["admin"]}>
               <ManageUsers />
             </ProtectedRoute>
           }
@@ -234,7 +235,7 @@ function App() {
         <Route
           path="/clients"
           element={
-            <ProtectedRoute role={["admin", "hr"]}>
+            <ProtectedRoute role={["admin"]}>
               <ManageClients />
             </ProtectedRoute>
           }
