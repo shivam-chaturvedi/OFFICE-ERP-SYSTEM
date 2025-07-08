@@ -45,7 +45,7 @@ function App() {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    setUser({ name: "TestUser", role: "hr" });
+    setUser({ name: "TestUser", role: "admin" });
     setLoading(false);
   }, []);
 
