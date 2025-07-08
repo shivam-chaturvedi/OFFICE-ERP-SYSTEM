@@ -12,4 +12,10 @@ router.put(
   "/add-monthly-salary/:emp_id",
   accountController.addMonthlySalaryOfEmployee
 );
+
+router.get(
+  "/salary-slip/:employeeId/:month/:year",
+  accountController.getSalarySlip
+);
+
 module.exports = router;

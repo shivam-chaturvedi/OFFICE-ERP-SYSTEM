@@ -44,6 +44,36 @@ const SalarySlip = ({ user }) => {
     setSelectedSlip(slip);
   };
 
+  const handleDownloadSalarySlip = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:3000/api/accounts/salary-slip/6863842010eb7738af737e80/july/2025",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to download salary slip");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "SalarySlip-July-2025.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error downloading salary slip:", err);
+      alert("Error downloading salary slip");
+    }
+  };
+
   if (!selectedSlip) return <div>Loading...</div>;
 
   return (
@@ -55,12 +85,21 @@ const SalarySlip = ({ user }) => {
           <p>
             Employee: <strong>{user.name}</strong>
           </p>
-          <p>Role: <strong>{user.role}</strong></p>
+          <p>
+            Role: <strong>{user.role}</strong>
+          </p>
 
-          <label htmlFor="slip-select" className="mt-4 block mb-2 font-semibold">
+          <label
+            htmlFor="slip-select"
+            className="mt-4 block mb-2 font-semibold"
+          >
             Select Month:
           </label>
-          <select id="slip-select" onChange={handleSelect} className="mb-6 p-2 border rounded">
+          <select
+            id="slip-select"
+            onChange={handleSelect}
+            className="mb-6 p-2 border rounded"
+          >
             {slips.map((slip) => (
               <option key={slip.id} value={slip.id}>
                 {slip.month}
@@ -69,7 +108,9 @@ const SalarySlip = ({ user }) => {
           </select>
 
           <div className="border p-4 rounded shadow bg-white">
-            <h3 className="text-xl font-semibold mb-3">{selectedSlip.month} Salary Slip</h3>
+            <h3 className="text-xl font-semibold mb-3">
+              {selectedSlip.month} Salary Slip
+            </h3>
             <table className="w-full text-left">
               <tbody>
                 <tr>
@@ -100,7 +141,7 @@ const SalarySlip = ({ user }) => {
             </table>
 
             <button
-              onClick={() => window.print()}
+              onClick={handleDownloadSalarySlip}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Print Salary Slip
@@ -110,7 +151,9 @@ const SalarySlip = ({ user }) => {
 
         {/* Calendar on Right Side */}
         <div className="mt-10 md:mt-0 md:ml-10 bg-white p-4 rounded shadow h-fit">
-          <h4 className="text-md font-semibold mb-2 text-gray-700">📅 Calendar</h4>
+          <h4 className="text-md font-semibold mb-2 text-gray-700">
+            📅 Calendar
+          </h4>
           <DatePicker
             selected={calendarDate}
             onChange={(date) => setCalendarDate(date)}

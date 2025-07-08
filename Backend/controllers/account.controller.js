@@ -1,5 +1,8 @@
 const Account = require("../models/account.model");
 const Employee = require("../models/employee.model");
+const User = require("../models/user.model");
+
+const PDFDocument = require("pdfkit");
 
 function convertToSalaryObject(arr) {
   const salaryObj = {};
@@ -188,8 +191,138 @@ const addMonthlySalaryOfEmployee = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+const getSalarySlip = async (req, res) => {
+  try {
+    const { employeeId, month, year } = req.params;
+
+    const account = await Account.findOne({ employee: employeeId });
+    if (!account) return res.status(404).json({ message: "Account not found" });
+
+    const employee = await Employee.findById(employeeId).populate("user");
+    if (!employee)
+      return res.status(404).json({ message: "Employee not found" });
+
+    const record = account.salaryRecords.find(
+      (r) =>
+        r.month?.toLowerCase() === month?.toLowerCase() &&
+        r.year === parseInt(year)
+    );
+
+    if (!record)
+      return res.status(404).json({ message: "Salary record not found" });
+
+    const doc = new PDFDocument({ margin: 40 });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=SalarySlip-${month}-${year}.pdf`
+    );
+    doc.pipe(res);
+
+    doc
+      .fontSize(16)
+      .text("TAC Service PVT. LTD.", { align: "center" });
+    doc
+      .fontSize(10)
+      .text(
+        "Corporate Office: TAC Services ,Ghaziabad",
+        { align: "center" }
+      );
+    doc.moveDown();
+
+    doc
+      .fontSize(14)
+      .text(`Payslip for the Month of: ${month.toUpperCase()} ${year}`, {
+        align: "center",
+      });
+    doc.moveDown();
+
+    const left = 50;
+    const right = 300;
+
+    doc.fontSize(10);
+    doc
+      .text(`Employee Code: ${employee._id}`, left)
+      .text(`Bank Name: ${account.bankName}`, right)
+      .text(`Paid Days: ${record.paidDays}`, left, doc.y)
+      .text(`Bank A/C No.: ${account.bankAccountNo}`, right)
+      .text(`LOP Days: ${record.lopDays}`, left, doc.y)
+      .text(
+        `Date of Joining: ${new Date(
+          employee.date_of_joining
+        ).toLocaleDateString()}`,
+        left
+      )
+      .text(`PF No.: ${account.pfNo || "-"}`, right)
+      .text(`Location: ${employee.work_location || "-"}`, left)
+      .text(`UAN: ${account.uan || "-"}`, right)
+      .text(`Days in Month: ${record.daysInMonth}`, left)
+      .text(`Department: ${employee.department || "-"}`, right)
+      .text(`Designation: ${employee.user.position}`, left)
+      .text(`PAN: ${account.pan || "-"}`, right)
+      .text(`Gender: ${employee.user.gender || "-"}`);
+
+    doc.moveDown(); 
+    doc.fontSize(12).text("Earnings", { underline: true });
+    (record.earnings || {}).keys().forEach((key) => {
+      doc.text(`${key}: ₹${new Number(record.earnings.get(key)).toFixed(2)}`);
+    });
+
+    doc.moveDown();
+    doc.fontSize(12).text("Deductions", { underline: true });
+    (record.deductions || {}).keys().forEach((key) => {
+      doc.text(`${key}: ₹${new Number(record.deductions.get(key)).toFixed(2)}`);
+    });
+
+    doc.moveDown();
+    doc
+      .fontSize(12)
+      .text(
+        `Total Earnings: ₹${
+          record.earnings
+            ? [...record.earnings.values()]
+                .reduce((a, b) => a + b, 0)
+                .toFixed(2)
+            : "0.00"
+        }`
+      );
+    doc.text(
+      `Total Deductions: ₹${
+        record.deductions
+          ? [...record.deductions.values()]
+              .reduce((a, b) => a + b, 0)
+              .toFixed(2)
+          : "0.00"
+      }`
+    );
+    doc.text(`Net Pay: ₹${record.netPay.toFixed(2)}`);
+
+    doc.moveDown();
+    doc.text(`In Words: Indian Rupee ${numberToWords(record.netPay)} Only`);
+
+    doc.moveDown(2);
+    doc
+      .fontSize(8)
+      .text(
+        "* This is a computer generated slip and does not require a signature.",
+        { align: "center" }
+      );
+
+    doc.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+function numberToWords(num) {
+  const converter = require("number-to-words");
+  return converter.toWords(num).replace(/(^\w|\s\w)/g, (m) => m.toUpperCase());
+}
+
 module.exports = {
   addOrUpdateAccount,
   removeEmployeeFromPayroll,
   addMonthlySalaryOfEmployee,
+  getSalarySlip,
 };

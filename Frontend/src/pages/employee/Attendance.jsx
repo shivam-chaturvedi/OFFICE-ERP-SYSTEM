@@ -266,7 +266,7 @@ const AttendanceTracker = ({ user }) => {
                 className={`px-6 py-2 rounded-lg font-medium transition-colors ${
                   todayStatus === "present"
                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    : "bg-green-500 hover:bg-green-600 text-white"
+                    : "bg-green-500 hover:bg-green-600 text-white cursor-pointer"
                 }`}
               >
                 Mark Present
@@ -560,7 +560,7 @@ const AttendanceTracker = ({ user }) => {
                 </p>
               </div>
               <div className="flex space-x-2">
-                <button className="flex items-center px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
+                <button className="cursor-pointer flex items-center px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">
                   <Download className="w-4 h-4 mr-1" />
                   Export CSV
                 </button>
