@@ -24,7 +24,7 @@ const Home = ({ user, setUser }) => {
                   ) ? (
                     <button
                       key={role}
-                      className="hover:bg-orange-600 uppercase hover:text-white px-4 py-2 m-2 rounded cursor-pointer bg-orange-300 text-black transition"
+                      className={`hover:bg-orange-600 uppercase hover:text-white px-4 py-2 m-2 rounded ml-0 cursor-pointer ${role=="admin"?"bg-green-300":(role=="hr"?"bg-orange-300":"bg-pink-300")} text-black transition`}
                       onClick={() => {
                         setUser({ ...user, role });
                       }}
