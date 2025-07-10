@@ -43,9 +43,9 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
   };
 
   const toggleSection = (section) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
@@ -109,12 +109,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
             label: "Manage Trainees",
             to: "/manage-trainees",
           },
-          // {
-          //   icon: <UserCheck size={18} />,
-          //   label: "Employee Directory",
-          //   to: "/employee-directory",
-          // },
-        ]
+        ],
       },
       {
         icon: <ListTodo size={20} />,
@@ -132,12 +127,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
             label: "Manage Leaves",
             to: "/manage-leaves",
           },
-          // {
-          //   icon: <ClipboardList size={18} />,
-          //   label: "Leave Approvals",
-          //   to: "/leave-approvals",
-          // },
-        ]
+        ],
       },
       {
         icon: <Briefcase size={20} />,
@@ -146,13 +136,17 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
         isSection: true,
         children: [
           { icon: <Briefcase size={18} />, label: "Clients", to: "/clients" },
-          { icon: <Users size={18} />, label: "Manage Teams", to: "/manage-teams" },
+          {
+            icon: <Users size={18} />,
+            label: "Manage Teams",
+            to: "/manage-teams",
+          },
           {
             icon: <Building size={18} />,
             label: "Manage Departments",
             to: "/manage-departments",
           },
-        ]
+        ],
       },
       {
         icon: <Shield size={20} />,
@@ -160,15 +154,18 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
         key: "admin",
         isSection: true,
         children: [
-          { icon: <Users size={18} />, label: "Manage Users", to: "/manage-users" },
-          { icon: <FileText size={18} />, label: "Reports", to: "/hr-reports" },
-          { icon: <Bell size={18} />, label: "Notices", to: "/hr-notices" },
           {
-            icon: <UserPlus size={18} />,
-            label: "Recruitments",
-            to: "/hr-recruitments",
+            icon: <Users size={18} />,
+            label: "Manage Users",
+            to: "/manage-users",
           },
-        ]
+          { icon: <FileText size={18} />, label: "Reports", to: "/reports" },
+          {
+            icon: <Bell size={18} />,
+            label: "Notifications",
+            to: "/notifications",
+          },
+        ],
       },
     ],
     hr: [
@@ -190,13 +187,9 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
             label: "Manage Trainees",
             to: "/manage-trainees",
           },
-          {
-            icon: <UserCheck size={18} />,
-            label: "Employee Directory",
-            to: "/employee-directory",
-          },
-        ]
+        ],
       },
+
       {
         icon: <ListTodo size={20} />,
         label: "Task & Leaves",
@@ -213,42 +206,48 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
             label: "Manage Leaves",
             to: "/manage-leaves",
           },
-          {
-            icon: <ClipboardList size={18} />,
-            label: "Leave Approvals",
-            to: "/leave-approvals",
-          },
-        ]
+        ],
       },
       {
         icon: <Briefcase size={20} />,
-        label: "Clients & Projects",
-        key: "clients",
+        label: "Teams & Departments",
+        key: "teams",
         isSection: true,
         children: [
-          { icon: <Briefcase size={18} />, label: "Clients", to: "/clients" },
-          { icon: <Users size={18} />, label: "Manage Teams", to: "/manage-teams" },
+          {
+            icon: <Users size={18} />,
+            label: "Manage Teams",
+            to: "/manage-teams",
+          },
           {
             icon: <Building size={18} />,
             label: "Manage Departments",
             to: "/manage-departments",
           },
-        ]
+        ],
       },
       {
-        icon: <Shield size={20} />,
-        label: "Admin Panel",
-        key: "admin",
+        icon: <Users size={20} />,
+        label: "Notifications & Reports",
+        key: "hrreports",
         isSection: true,
         children: [
-          { icon: <FileText size={18} />, label: "Reports", to: "/hr-reports" },
-          { icon: <Bell size={18} />, label: "Notices", to: "/hr-notices" },
           {
-            icon: <Settings size={18} />,
+            icon: <UserCog size={18} />,
+            label: "Reports",
+            to: "/hr-reports",
+          },
+          {
+            icon: <UserPlus size={18} />,
+            label: "Notices",
+            to: "/hr-notices",
+          },
+          {
+            icon: <UserPlus size={18} />,
             label: "Recruitments",
             to: "/hr-recruitments",
           },
-        ]
+        ],
       },
     ],
     employee: [
@@ -311,7 +310,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
               </>
             )}
           </button>
-          
+
           {/* Sub-items */}
           {expanded && expandedSections[item.key] && (
             <div className="ml-6 mt-1 space-y-1 bg-gray-50 rounded-lg p-2">
@@ -329,9 +328,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
                     }`
                   }
                 >
-                  <div className="flex-shrink-0">
-                    {child.icon}
-                  </div>
+                  <div className="flex-shrink-0">{child.icon}</div>
                   <span className="text-sm font-medium">{child.label}</span>
                 </NavLink>
               ))}
@@ -432,7 +429,9 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
           className={`flex-1 px-3 py-4 overflow-y-auto scrollbar-hide
             ${!expanded && !isMobile ? "px-2" : ""}`}
         >
-          {sidebarStructure[user?.role]?.map((item, index) => renderMenuItem(item, index))}
+          {sidebarStructure[user?.role]?.map((item, index) =>
+            renderMenuItem(item, index)
+          )}
         </div>
 
         {/* Bottom Actions */}
@@ -454,12 +453,10 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
                   </div>
                 )}
               </div>
-              {expanded && (
-                <span className="text-sm font-medium">Toggle</span>
-              )}
+              {expanded && <span className="text-sm font-medium">Toggle</span>}
             </div>
           </button>
-          
+
           {/* Logout Button */}
           <button onClick={logout} className="w-full text-left">
             <div
@@ -474,9 +471,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
                   </div>
                 )}
               </div>
-              {expanded && (
-                <span className="text-sm font-medium">Logout</span>
-              )}
+              {expanded && <span className="text-sm font-medium">Logout</span>}
             </div>
           </button>
         </div>
