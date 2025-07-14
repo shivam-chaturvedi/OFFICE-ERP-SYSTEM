@@ -92,7 +92,7 @@ const Sidebar = ({ user, setUser, expanded, setExpanded }) => {
   const sidebarStructure = {
     admin: [
       { icon: <Home size={20} />, label: "Home", to: "/" },
-      { icon: <User size={20} />, label: "Profile", to: "/admin-profile" },
+      // { icon: <User size={20} />, label: "Profile", to: "/admin-profile" },
       {
         icon: <Users size={20} />,
         label: "Employees Management",

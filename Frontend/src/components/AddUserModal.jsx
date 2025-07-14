@@ -199,7 +199,7 @@ const AddUserModal = ({ onClose, onSuccess, employees }) => {
                       </div>
                     </div>
                     <div className="flex gap-4">
-                      {["Admin", "HR", "Project_Manager"].map((role) => (
+                      {["Admin", "HR"].map((role) => (
                         <label key={role} className="flex items-center gap-1">
                           <input
                             type="checkbox"

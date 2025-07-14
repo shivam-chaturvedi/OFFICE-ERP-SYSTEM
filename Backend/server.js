@@ -12,6 +12,7 @@ const leaveRoutes = require("./routes/leave.routes");
 const permissionRoutes = require("./routes/permission.routes");
 const authMiddleware = require("./middlewares/auth.middleware");
 const attendanceRoutes = require("./routes/attendence.routes");
+const internRoutes = require("./routes/intern.routes");
 
 require("dotenv").config();
 
@@ -66,6 +67,7 @@ app.use("/api/accounts", accountRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/permissions", permissionRoutes);
 app.use("/api/attendence", attendanceRoutes);
+app.use("/api/interns", internRoutes);
 
 const PORT = 3000;
 app.listen(PORT, "0.0.0.0", () => {
